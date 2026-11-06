@@ -1,0 +1,11 @@
+Iceberg deleted rows: 4
+Iceberg remaining rows: 2995
+Iceberg data files rewritten: 1
+Delta Lake deleted rows: 4
+Delta Lake remaining rows: 2995
+Delta Lake data files rewritten: 1
+DuckLake deleted rows: 4
+DuckLake remaining rows: 2995
+DuckLake data files before: 6
+DuckLake data files after: 6
+DuckLake delete files written: 1

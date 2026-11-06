@@ -1,0 +1,24 @@
+[examples.delete-low-views]
+say = "The code loads six hours into an Iceberg table, a Delta Lake table and a DuckLake table, then deletes the hour 02 rows with fewer than 180 views from each. It prints the rows deleted and left in each format, and the data files each copy-on-write delete rewrote: Iceberg deleted {{out:delete-low-views:Iceberg deleted rows}} rows and rewrote {{out:delete-low-views:Iceberg data files rewritten}} file, and Delta Lake deleted {{out:delete-low-views:Delta Lake deleted rows}} rows and rewrote {{out:delete-low-views:Delta Lake data files rewritten}} file. DuckLake deleted {{out:delete-low-views:DuckLake deleted rows}} rows, kept its data files at {{out:delete-low-views:DuckLake data files before}} before and {{out:delete-low-views:DuckLake data files after}} after, and wrote {{out:delete-low-views:DuckLake delete files written}} delete file."
+
+[examples.redeliver-hour-upsert]
+say = "The code loads six hours into an Iceberg table, builds the corrected hour 02 with one late row, and upserts it on the key. It prints the rows updated, which is {{out:redeliver-hour-upsert:rows updated}}, and the rows inserted, which is {{out:redeliver-hour-upsert:rows inserted}}. Then it lists the snapshots the call added, which is {{out:redeliver-hour-upsert:snapshots added}}: an overwrite that deletes {{out:redeliver-hour-upsert:snapshot 7 records deleted}} rows and adds {{out:redeliver-hour-upsert:snapshot 7 records added}}, and two appends, the first adding {{out:redeliver-hour-upsert:snapshot 8 records added}} changed rows and the second adding {{out:redeliver-hour-upsert:snapshot 9 records added}} late row. It then runs the same upsert again, which updates {{out:redeliver-hour-upsert:rows updated on second upsert}} rows and inserts {{out:redeliver-hour-upsert:rows inserted on second upsert}}."
+
+[examples.merge-correction-ducklake]
+say = "The code loads the six hours into the DuckLake copy, then merges the corrected hour and its late row into it with a SQL MERGE. It prints how many source rows the batch holds, which is {{out:merge-correction-ducklake:source rows}}, and how many of them match a key already in the table, which is {{out:merge-correction-ducklake:source rows matched}}. The merge changes {{out:merge-correction-ducklake:rows changed by the merge}} rows, and a second run changes {{out:merge-correction-ducklake:rows changed by the same merge again}}. The table ends with {{out:merge-correction-ducklake:rows in table}} rows."
+
+[examples.merge-domains-label]
+say = "The code creates the domains table in DuckLake with its four rows, then merges one changed language label into it with the same kind of MERGE. The merge changes {{out:merge-domains-label:rows changed by the merge}} row, a second run changes {{out:merge-domains-label:rows changed by the same merge again}}, and the sorted table follows, one row per domain code."
+
+[examples.duplicate-source-keys]
+say = "The code sends one corrected row twice in a batch and tries to write the batch to Iceberg with an upsert and to DuckLake with a MERGE. Both refuse it. The output shows each error in words and the row count afterwards, which is unchanged in both tables."
+
+[[blocks]]
+section = "merge-in-ducklake"
+starts = "MERGE INTO lake.wiki.pageviews_hourly AS t"
+say = "A SQL MERGE into the DuckLake pageviews table, from the batch named batch. It matches each source row to a target row on the three key columns. When the key matches and the views differ, it updates the views. When no row matches, it inserts the source row, including its response bytes. The condition on the update is what makes a rerun change nothing."
+
+[[tables]]
+section = "copy-on-write-and-merge-on-read"
+starts = "| Format |"
+say = "A table with one row for each format: Iceberg, Delta Lake and DuckLake. For each it gives the library at the pins, how that library writes a delete, which is copy-on-write for Iceberg and Delta Lake and merge-on-read for DuckLake, and that the delete example shows each of the three."

@@ -1,0 +1,7 @@
+files before compaction: 6
+files added by compaction: 1
+files removed by compaction: 6
+files after compaction: 1
+rows after compaction: 2999
+rows at the version before compaction: 2999
+parquet files on disk after compaction: 7

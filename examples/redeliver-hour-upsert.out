@@ -1,0 +1,14 @@
+rows updated: 20
+rows inserted: 1
+snapshot 7 overwrite
+snapshot 7 records added: 480
+snapshot 7 records deleted: 500
+snapshot 8 append
+snapshot 8 records added: 20
+snapshot 8 records deleted: 0
+snapshot 9 append
+snapshot 9 records added: 1
+snapshot 9 records deleted: 0
+snapshots added: 3
+rows updated on second upsert: 0
+rows inserted on second upsert: 0

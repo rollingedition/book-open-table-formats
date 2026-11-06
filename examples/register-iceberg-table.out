@@ -1,0 +1,5 @@
+rows read through the second object: 1499
+rows in the loaded object after another append: 1499
+rows after a reload: 1999
+rows in archive copy: 1999
+other name: NoSuchNamespaceError: Namespace does not exist: wiki

@@ -1,0 +1,5 @@
+parquet files, live catalog: 1
+files the dry run lists: 1
+parquet files after cleanup_all: 0
+count through the live catalog: 4
+reading the live catalog: IOException

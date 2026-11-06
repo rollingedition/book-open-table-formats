@@ -1,0 +1,46 @@
+# Spoken descriptions for chapter 10 (writing standards W-54 to W-56; docs/specs/audio.md).
+
+[examples.iceberg-format-versions]
+say = "The code creates an Iceberg table in format version two, appends one hour, and deletes the rows with fewer views than the cut's threshold. It prints the format version, which is {{out:iceberg-format-versions:format version}}, the number of rows deleted, which is {{out:iceberg-format-versions:rows deleted}}, and the number of delete files left after the delete, which is {{out:iceberg-format-versions:delete files after the delete}}. It prints the operation of each snapshot, and the second one is {{out:iceberg-format-versions:snapshot 2 operation}}. Last, it asks for a format version three table, and the create fails with a not-implemented error."
+
+[examples.feature-check]
+say = "The code writes a small table of pageviews to a Delta Lake table with deletion vectors turned on, deletes the rows below 180 views, and prints the protocol versions and reader features. The minimum reader version is {{out:feature-check:minimum reader version}}, and the minimum writer version is {{out:feature-check:minimum writer version}}. It prints the rows deleted, which are {{out:feature-check:rows deleted}}, and the data files rewritten, which are {{out:feature-check:data files rewritten}}. Then it reads the rows through the query builder, which gives {{out:feature-check:rows through QueryBuilder}}, and counts the deletion vector files, which are {{out:feature-check:deletion vector files}}."
+
+[examples.ducklake-catalog-version]
+say = "The code attaches a DuckLake catalog and prints its catalog version, which is {{out:ducklake-catalog-version:ducklake catalog version}}. Then it prints the DuckLake extension, which DuckDB reports as a build, {{out:ducklake-catalog-version:ducklake extension version}}."
+
+[examples.ducklake-delete-files]
+say = "The code loads six hours of pageviews into a DuckLake table with data inlining off. It deletes the rows of hour two below 180 views, then prints the rows left, which are {{out:ducklake-delete-files:rows left after the small delete}}, and the delete files, which are {{out:ducklake-delete-files:delete files after the small delete}}. It deletes the rows below 1000 views and prints the same two counts again."
+
+[examples.ducklake-inlined-delete]
+say = "The code repeats the same loads and deletes on a DuckLake table with DuckLake's default data inlining. After the small delete, it prints the rows left, which are {{out:ducklake-inlined-delete:rows left after the small delete}}, and the delete files, which are {{out:ducklake-inlined-delete:delete files after the small delete}}. The small delete is inlined into the catalog and writes no file. After the large delete, the count of delete files is {{out:ducklake-inlined-delete:delete files after the large delete}}."
+
+[[tables]]
+section = "matrix-writing-and-reading"
+starts = "| Versions and reads |"
+say = "A table of what each library does for writing rows, reading an earlier commit, creating a format version three table, renaming a column and setting column mapping. pyiceberg writes rows and reads earlier snapshots, and it refuses format version three. deltalake reads earlier versions, and its rename changes only the metadata, so the column names stay the same. DuckLake does the same reads, and the last column names where each result is shown."
+
+[[tables]]
+section = "matrix-changing-and-cleaning-up"
+starts = "| Changes and cleanup |"
+say = "A table of what each library does for deletes, upserts, partition changes, compaction and snapshot expiry. pyiceberg deletes by rewriting files, with no delete files, and compacts by overwriting the table. deltalake deletes by rewriting files and compacts with an optimize call. DuckLake writes a delete file for a delete unless it inlines the delete, and it merges and expires by its own calls."
+
+[[tables]]
+section = "matrix-catalogs-and-duckdb"
+starts = "| Catalogs and DuckDB |"
+say = "A table of which tables need a catalog, and how DuckDB reads and writes each format. pyiceberg needs a SQL catalog. deltalake is found by its path. DuckLake uses its catalog file. DuckDB reads pyiceberg's output through Arrow, and deltalake's through the query builder. It reads and writes DuckLake natively."
+
+[[tables]]
+section = "iceberg-v3-and-deletion-vectors"
+starts = "| Feature |"
+say = "A table of three Iceberg version three features. Binary deletion vectors are the current row-level delete format, and pyiceberg does not write them. Position delete files are legacy, allowed only in format version two tables, and pyiceberg does not write them. Row lineage, defaults, variant and nanosecond timestamps are part of version three, and pyiceberg at these pins cannot create such a table."
+
+[[tables]]
+section = "choice-decision-guide"
+starts = "| If your situation is |"
+say = "A table of five situations and the format each one points to. Pyiceberg and DuckDB reading the table point to Iceberg format version two. Several readers that need in-place renames point to Iceberg. DuckDB as the only engine points to DuckLake. Existing Delta Lake tables stay Delta Lake, with no rename promise. Changing a Delta Lake table from DuckDB is not available at these pins."
+
+[[tables]]
+section = "measure-support-before-choosing"
+starts = "| Reader |"
+say = "A table to record each reader with its pinned version, the features the tables need, and the date the reader was measured. It has one row per reader, and a feature with no measurement counts as unsupported."

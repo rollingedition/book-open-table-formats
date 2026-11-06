@@ -1,0 +1,21 @@
+[examples.iceberg-to-ducklake-copy]
+say = "The code builds an Iceberg table partitioned by the hour of its time column, appends three hours, and copies its rows into DuckLake through Arrow. The DuckLake table is created empty, given an hour partition, and only then filled. The output prints the source's rows, its snapshots and its partition field. Then it prints the copy's rows, its partition transforms, the files and rows in each partition, and its snapshots, one line each, with the kinds of change they made. The source has {{out:iceberg-to-ducklake-copy:source snapshots}} snapshots, and the copy has {{out:iceberg-to-ducklake-copy:copy rows}} rows, written as {{out:iceberg-to-ducklake-copy:copy files per partition}} files."
+
+[examples.delta-to-iceberg-copy]
+say = "The code writes three hours to a Delta Lake table, one append each, and reads back its current rows. It appends those rows to an Iceberg table. The output gives the Delta table's versions and rows, the Iceberg table's snapshot count and row count, and both schemas, one column per line. The Delta table has {{out:delta-to-iceberg-copy:delta versions}} versions, and the Iceberg table has {{out:delta-to-iceberg-copy:iceberg snapshots}} snapshot."
+
+[examples.timestamp-precision-check]
+say = "The code makes two timestamps that differ only below a microsecond, and writes them to an Iceberg table, a Delta Lake table and a DuckLake table. The Iceberg append fails, and the output shows the error: {{out:timestamp-precision-check:iceberg append}}. Delta Lake reads the values back in microseconds, and the output shows {{out:timestamp-precision-check:delta read back as microseconds}}. DuckLake keeps the nanoseconds: {{out:timestamp-precision-check:ducklake epoch nanoseconds read back}}."
+
+[examples.verify-copies-by-digest]
+say = "The code builds the Iceberg-to-DuckLake copy and the Delta-to-Iceberg copy, and computes a digest of the rows on each side. It prints the row counts and whether each pair of digests matches. Both copies match: {{out:verify-copies-by-digest:iceberg to ducklake match}}. Then it changes one view count in the rows read from the copy and digests again, and the digests no longer match: {{out:verify-copies-by-digest:iceberg to ducklake with one changed view count match}}."
+
+[[tables]]
+section = "what-a-copy-keeps-and-loses"
+starts = "| Part of the table |"
+say = "A table with one row for each part of a table: the rows and their values, the column names and types, the commit history, the partition spec, and timestamps below a microsecond. For each part it says whether the copy keeps it, loses it, or depends on the format. Rows and values are kept, and the commit history is lost, because the copy starts its own. The last column names the section that shows each one."
+
+[[tables]]
+section = "delta-to-iceberg"
+starts = "| Column | Delta Lake"
+say = "A table with one row for each of the five columns, comparing its Delta Lake Arrow type with its Iceberg type. The names match in every row. The Arrow int64 type is Iceberg's long, and the timestamp is microseconds on both sides."

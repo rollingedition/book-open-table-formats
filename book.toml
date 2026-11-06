@@ -1,0 +1,11 @@
+# Book manifest: how this book is cataloged. Validated against the taxonomy on every pull request.
+slug = "open-table-formats"
+title = "Open Table Formats"
+summary = "How Iceberg, Delta Lake and DuckLake store a table, change it, clean it up, register it in a catalog and move it to another format, on one hourly pageviews table, with examples that run offline on a laptop."
+status = "live"                      # draft | live | unmaintained | retired
+level = "in-practice"                 # foundations | in-practice
+reader = "For data engineers and analytics engineers who write SQL and Python and now have to decide how their lakehouse tables are stored, changed, cleaned up, shared and moved between formats."
+skills = ["data-warehousing", "data-pipelines"]   # 1 to 5; the first is primary
+line = "main"                         # edition line
+core_libraries = ["duckdb", "pyiceberg", "deltalake", "pyarrow"]   # names only; versions are pinned in examples/requirements.txt
+sponsor = ""

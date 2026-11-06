@@ -1,0 +1,7 @@
+data files before merge: 6
+files merged: 6
+files created: 1
+data files after merge: 1
+rows after merge: 2999
+rows at the snapshot before merge: 2999
+parquet files on disk after merge: 7

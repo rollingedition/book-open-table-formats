@@ -1,0 +1,21 @@
+# Spoken descriptions for chapter 8 (writing standards W-54 to W-56; docs/specs/audio.md).
+
+[examples.register-iceberg-table]
+say = "The code writes three hours to an Iceberg table, then opens the same catalog file a second time under the same name. That object reads {{out:register-iceberg-table:rows read through the second object}} rows. The code appends a fourth hour through the first object, and an object loaded before that append still reads {{out:register-iceberg-table:rows in the loaded object after another append}} rows, while a reload reads {{out:register-iceberg-table:rows after a reload}}. It registers the table's metadata under a second name, and that copy reads {{out:register-iceberg-table:rows in archive copy}} rows. Last, an object opened under a different name lists the namespace and gets a no-such-namespace error."
+
+[examples.attach-ducklake]
+say = "The code creates a DuckLake catalog with a four-row domains table, detaches the catalog, and attaches the same file again without a data path. The table reads {{out:attach-ducklake:rows after re-attach}} rows after the re-attach. The printed list has one table in the wiki schema, called domains."
+
+[examples.open-delta-by-path]
+say = "The code writes three hours to a Delta Lake table in a folder, then opens the folder by its path. The table's current version is {{out:open-delta-by-path:delta version}}, and it reads {{out:open-delta-by-path:rows at that version}} rows. Version zero, the first write, reads {{out:open-delta-by-path:rows at version 0}} rows. Last, the code opens a folder that does not exist, and the error is a table-not-found error."
+
+[examples.join-pageviews-and-domains]
+say = "The code writes three hours to an Iceberg table and reads it as an Arrow table. It joins that table with the domains table in DuckLake, in one DuckDB statement. The join matches {{out:join-pageviews-and-domains:joined rows}} rows, and {{out:join-pageviews-and-domains:rows with no language}} rows find no language. The output lists the top three rows by views, highest first, all the same main page on the English domain."
+
+[examples.ducklake-orphan-cleanup-hazard]
+say = "The code creates a DuckLake table, then attaches a fresh, empty catalog file to the same data folder. The data folder holds {{out:ducklake-orphan-cleanup-hazard:parquet files, live catalog}} Parquet file. A dry run of the cleanup with cleanup all lists {{out:ducklake-orphan-cleanup-hazard:files the dry run lists}} file. The real cleanup runs, and the folder then holds {{out:ducklake-orphan-cleanup-hazard:parquet files after cleanup_all}} Parquet files. Through the original catalog, the table still counts {{out:ducklake-orphan-cleanup-hazard:count through the live catalog}} rows, but reading its columns fails with {{out:ducklake-orphan-cleanup-hazard:reading the live catalog}}."
+
+[[tables]]
+section = "what-a-catalog-holds"
+starts = "| Format |"
+say = "A table with three rows, one for each format. For Iceberg, the table is named by a SQL catalog object called local, and its current metadata is in the catalog's database. For DuckLake, the catalog file names the table, and the metadata is inside that file. For Delta Lake, nothing but the folder path names the table, and the metadata is in the folder."

@@ -1,0 +1,6 @@
+data files before rewrite: 6
+data files after rewrite: 1
+rows after rewrite: 2999
+snapshot operations in order: append, append, append, append, append, append, delete, append
+snapshot 6 rows: 2999
+parquet files on disk after rewrite: 7

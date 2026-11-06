@@ -1,0 +1,5 @@
+iceberg to ducklake rows: 1499 and 1499
+iceberg to ducklake match: True
+iceberg to ducklake with one changed view count match: False
+delta to iceberg rows: 1499 and 1499
+delta to iceberg match: True

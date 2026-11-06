@@ -1,0 +1,5 @@
+source rows: 501
+source rows matched: 500
+rows changed by the merge: 21
+rows changed by the same merge again: 0
+rows in table: 3000

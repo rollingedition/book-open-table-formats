@@ -1,0 +1,38 @@
+# Spoken descriptions for chapter 3 (writing standards W-54 to W-56; docs/specs/audio.md).
+
+[examples.add-column-to-existing-files]
+say = "The code writes three hours to an Iceberg table, adds a load batch column, and appends three more hours. Each later load writes its hour number into that column. It then does the same in Delta Lake, where the versions count from zero, and counts the rows that read null in the added column, split by whether they were written before the add. Before the add there are {{out:add-column-to-existing-files:iceberg rows written before the add}} Iceberg rows, and {{out:add-column-to-existing-files:iceberg rows written before the add with load_batch null}} of them are null. The table holds {{out:add-column-to-existing-files:iceberg rows in the table}} rows in all, and the {{out:add-column-to-existing-files:iceberg rows written after the add}} rows written after the add have {{out:add-column-to-existing-files:iceberg rows written after the add with load_batch null}} nulls. The snapshot count does not change across the add."
+
+[examples.rename-by-id]
+say = "The code writes three hours to an Iceberg table, reads the field ID of the page title column, renames the column to article title, and reads the ID again. It counts the data files before and after, and asks DuckDB to count the non-null article title values. The field ID is {{out:rename-by-id:page_title field ID before the rename}} before the rename and {{out:rename-by-id:article_title field ID after the rename}} after it, and all {{out:rename-by-id:rows}} rows count."
+
+[examples.delta-rename-trap]
+say = "The code creates a Delta Lake table with column mapping on, calls set column metadata with a name key, and reads the names back. The call returns without error, and the version goes up by one. The column still reads as page title. The DuckDB query that asks for article title fails with a binder exception, and the error lists page title among the columns it could use."
+
+[examples.delta-rename-by-rewrite]
+say = "The code writes three hours to a Delta Lake table, reads the whole table, renames the page title column in memory, and writes it back over the table with the schema replaced. The table goes from {{out:delta-rename-by-rewrite:data files before the rewrite}} data files to {{out:delta-rename-by-rewrite:data files after the rewrite}}. The rewrite makes version {{out:delta-rename-by-rewrite:version after the rewrite}}, which has the article title column and {{out:delta-rename-by-rewrite:rows after the rewrite}} rows, and version {{out:delta-rename-by-rewrite:version before the rewrite}} still has the page title column."
+
+[[blocks]]
+section = "add-response-bytes"
+starts = "with table.update_schema() as update:"
+say = "Iceberg adds a column inside a schema update: the code gives the column its name and an integer type, and the table assigns the field ID."
+
+[[blocks]]
+section = "add-response-bytes"
+starts = "DeltaTable(path).alter.add_columns"
+say = "Delta Lake adds the same column through its alter object, passing a field with the name and an integer type. The table's version goes up by one."
+
+[[blocks]]
+section = "rename-column-without-rewrite"
+starts = "with table.update_schema() as update:"
+say = "Iceberg renames a column inside a schema update: the code gives the old name and the new name, and the field ID stays the same."
+
+[[blocks]]
+section = "rename-in-delta-lake"
+starts = "DeltaTable(path).alter.set_column_metadata"
+say = "The Delta Lake call that looks like a rename: it sets a name key in the column's metadata. It returns without error, and the column keeps its old name."
+
+[[tables]]
+section = "schema-decisions"
+starts = "| Change |"
+say = "A table comparing the two formats for three changes: adding a column, renaming a column, and reading an older snapshot or version. Iceberg adds and renames without rewriting, and an older snapshot shows the older name. Delta Lake adds, but its rename does not work at this version, and an older version shows the older name."

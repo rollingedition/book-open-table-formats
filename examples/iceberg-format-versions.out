@@ -1,0 +1,6 @@
+format version: 2
+rows deleted: 82
+delete files after the delete: 0
+snapshot 1 operation: append
+snapshot 2 operation: overwrite
+format version 3 create: NotImplementedError

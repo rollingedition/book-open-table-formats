@@ -1,0 +1,4 @@
+Iceberg upsert: ValueError: Duplicate rows found in source dataset based on the key columns. No upsert executed
+Iceberg rows after the failed upsert: 2999
+DuckLake merge: InvalidInputException: Invalid Input Error: MERGE INTO command cannot affect the same target row more than once. A target row matched more than one source row; ensure the source rows are deduplicated or the ON condition is unique.
+DuckLake rows after the failed merge: 2999

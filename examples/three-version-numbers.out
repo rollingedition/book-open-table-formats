@@ -1,0 +1,9 @@
+snapshots before the first insert: 3
+after hour 00, Delta version 0 rows: 499
+after hour 00, DuckLake snapshot 4 rows: 499
+after hour 01, Delta version 1 rows: 999
+after hour 01, DuckLake snapshot 5 rows: 999
+after hour 02, Delta version 2 rows: 1499
+after hour 02, DuckLake snapshot 6 rows: 1499
+select time: InvalidInputException: Invalid Input Error: Required module 'pytz' failed to import, due to the following Python exception:
+ModuleNotFoundError: No module named 'pytz'

@@ -1,0 +1,5 @@
+spec 1 field ts_day: transform day
+spec 2 field ts_hour: transform hour
+spec 1 data files: 3
+spec 2 data files: 3
+rows in table: 2999

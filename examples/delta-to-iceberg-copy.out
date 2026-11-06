@@ -1,0 +1,16 @@
+delta versions: 3
+delta rows: 1499
+delta columns (name, type, nullability):
+domain_code	string	nullable
+hour_utc	timestamp[us]	nullable
+page_title	string	nullable
+response_bytes	int64	nullable
+views	int64	nullable
+iceberg snapshots: 1
+iceberg rows: 1499
+iceberg columns (name, type, requirement):
+domain_code	string	optional
+hour_utc	timestamp	optional
+page_title	string	optional
+response_bytes	long	optional
+views	long	optional

@@ -1,0 +1,9 @@
+snapshots before expiry: 8
+data files in the current snapshot: 3
+expiry dry run lists: 7
+remaining snapshots: snapshot 8
+cleanup dry run lists: 1
+cleanup removed: 1
+orphans listed without cleanup_all: 0
+rows in the current snapshot: 1499
+read snapshot 7: InvalidInputException

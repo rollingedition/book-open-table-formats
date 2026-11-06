@@ -1,0 +1,7 @@
+page_title field ID before the rename: 3
+data files before the rename: 3
+article_title field ID after the rename: 3
+data files after the rename: 3
+rows: 1499
+article_title not null: 1499
+snapshot 1 columns: hour_utc, domain_code, page_title, views, response_bytes

@@ -1,0 +1,13 @@
+source rows: 1499
+source snapshots: 3
+source partition field: ts_hour
+copy rows: 1499
+copy partition transforms: ['hour']
+copy partition values: ['0', '1', '2']
+copy files per partition: [1, 1, 1]
+copy rows per partition: [499, 500, 500]
+copy snapshot 1: schemas_created
+copy snapshot 2: schemas_created
+copy snapshot 3: tables_created
+copy snapshot 4: tables_altered
+copy snapshot 5: tables_inserted_into

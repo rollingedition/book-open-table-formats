@@ -1,0 +1,7 @@
+current version: 4
+default retention, dry run lists: 0
+zero retention without the flag: DeltaError
+zero retention, dry run lists: 1
+zero retention, removed: 1
+rows in version 0: 499
+read version 2: ArrowInvalid

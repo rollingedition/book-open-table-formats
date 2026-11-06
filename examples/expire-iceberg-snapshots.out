@@ -1,0 +1,8 @@
+snapshots before expiry: 5
+data files referenced before expiry: 4
+data files in the current snapshot: 3
+remaining snapshots: snapshot 4, snapshot 5
+data files referenced after expiry: 3
+unreferenced data files left on disk: 1
+rows in the current snapshot: 1499
+read snapshot 3: ValueError

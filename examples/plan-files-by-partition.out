@@ -1,0 +1,6 @@
+before the change, one-hour filter plans: 1
+before the change, hour 04 filter plans: 0
+before the change, no filter plans: 3
+after the change, one-hour filter plans: 1
+after the change, hour 04 filter plans: 1
+after the change, no filter plans: 6

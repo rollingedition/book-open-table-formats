@@ -1,0 +1,4 @@
+delta version: 2
+rows at that version: 1499
+rows at version 0: 499
+missing path: TableNotFoundError

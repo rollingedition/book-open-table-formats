@@ -1,0 +1,23 @@
+[examples.rough-lakehouse]
+say = "The code loads six hours of the pageviews cut into three tables at once: an Iceberg table, a Delta Lake table and a DuckLake table. Then it reads each one back and adds up the rows and the views. It prints the three row counts, the three view totals, the number of data files each format wrote, and the three most-viewed page titles across all six hours, read from the Iceberg table alone, largest first. The three totals match: {{out:rough-lakehouse:iceberg rows}} rows and {{out:rough-lakehouse:iceberg views}} views in each format."
+
+[examples.append-hours]
+say = "The code creates the Iceberg table, then appends hours zero, one and two as three separate commits. It lists each snapshot in commit order with its operation, which is append, and the number of rows that commit added. Hour zero adds {{out:append-hours:snapshot 1 rows added}} rows, and the other two hours add {{out:append-hours:snapshot 2 rows added}} each. The table then holds {{out:append-hours:rows in table}} rows in {{out:append-hours:data files}} data files. Last, the code repeats hour zero. The new commit has the operation {{out:append-hours:repeat of hour 00 operation}} and adds {{out:append-hours:repeat of hour 00 rows added}} rows, the same count as the first copy, so the table holds {{out:append-hours:rows in table after the repeat}} rows, and no error is raised."
+
+[examples.scan-into-duckdb]
+say = "The code appends three hours to an Iceberg table, reads its current state as an Arrow table, and gives that table to DuckDB under the name pageviews. DuckDB then finds the five titles with the most views in hour zero, and adds up all the views. The list shows views and then the title, in descending order of views, so the most-viewed title comes first. The total in DuckDB is {{out:scan-into-duckdb:total views in DuckDB}}, the same as the scan's own total of {{out:scan-into-duckdb:total views in the scan}}, and the last line confirms that the two totals match."
+
+[[blocks]]
+section = "one-load-loop"
+starts = "for hour in hours:"
+say = "A loop that runs once for each hour it is given, six in all. Each pass reads one hour of the cut and writes it to three tables. It appends the hour to the Iceberg table, appends it to the Delta Lake table, and inserts it into the DuckLake table. Each of those three writes is one commit in that format."
+
+[[blocks]]
+section = "create-catalog-and-table"
+starts = "Schema("
+say = "The schema of the Iceberg table, written out in code. It lists five numbered columns: the hour as a timestamp, the domain code and the page title as text, and the views and the response bytes as 64-bit whole numbers. Each column also says that it may be empty."
+
+[[tables]]
+section = "why-python-libraries"
+starts = "| Format |"
+say = "A table with one row for each of the three formats: Apache Iceberg, Delta Lake and DuckLake. For each format it names the library or extension that writes the table, and the way DuckDB reads it. Iceberg is written by pyiceberg and read as an Arrow table from a scan. Delta Lake is written by deltalake and read as an Arrow table from a deltalake query. DuckLake is written by DuckDB's ducklake extension and attached to DuckDB through a catalog file."

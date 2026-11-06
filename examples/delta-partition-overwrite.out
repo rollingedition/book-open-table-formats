@@ -1,0 +1,10 @@
+partition columns before: ['day']
+version before: 2
+data files before: 3
+change without schema mode: DeltaError: Generic error: Specified table partitioning does not match table partitioning: expected: ["day"], got: ["hour"]. To change partition columns, use full table overwrite with schema overwrite and no replaceWhere predicate.
+partition columns after: ['hour']
+version after: 3
+data files after: 3
+rows after: 1499
+partition columns in version 2: ['day']
+rows in version 2: 1499

@@ -1,0 +1,12 @@
+snapshot 1 operation: append
+snapshot 1 rows added: 499
+snapshot 2 operation: append
+snapshot 2 rows added: 500
+snapshot 3 operation: append
+snapshot 3 rows added: 500
+version 0 operation: WRITE
+version 0 rows added: 499
+version 1 operation: WRITE
+version 1 rows added: 500
+version 2 operation: WRITE
+version 2 rows added: 500

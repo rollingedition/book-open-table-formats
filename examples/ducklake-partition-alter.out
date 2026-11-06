@@ -1,0 +1,5 @@
+data files before the change: 3
+data files after one load under hour: 4
+files kept from before the change: 3
+partition key 0: transform hour
+rows in table: 1999

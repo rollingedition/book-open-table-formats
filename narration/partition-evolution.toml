@@ -1,0 +1,33 @@
+# Spoken descriptions for chapter 4 (writing standards W-54 to W-56; docs/specs/audio.md).
+
+[examples.day-then-hour-spec]
+say = "The code partitions an Iceberg table by day, appends three hours, then changes the partition spec to hour and appends three more hours. It lists each spec in order with its field and transform, then counts the data files each spec wrote. Spec 1 wrote {{out:day-then-hour-spec:spec 1 data files}} files and spec 2 wrote {{out:day-then-hour-spec:spec 2 data files}}, and the table holds {{out:day-then-hour-spec:rows in table}} rows."
+
+[examples.plan-files-by-partition]
+say = "The code counts the files an Iceberg scan plans for a one-hour filter, for an hour 04 filter, and for a full scan, before the spec change and after it. Before the change the one-hour filter plans {{out:plan-files-by-partition:before the change, one-hour filter plans}} file, the hour 04 filter plans {{out:plan-files-by-partition:before the change, hour 04 filter plans}} files, and the full scan plans {{out:plan-files-by-partition:before the change, no filter plans}}. After the change the one-hour filter still plans {{out:plan-files-by-partition:after the change, one-hour filter plans}} file, the hour 04 filter plans {{out:plan-files-by-partition:after the change, hour 04 filter plans}} file, and the full scan plans {{out:plan-files-by-partition:after the change, no filter plans}}."
+
+[examples.delta-partition-overwrite]
+say = "The code writes three hourly loads to a Delta Lake table partitioned by day, then tries to change the partition column to hour with a plain overwrite. The library refuses, and the code prints the error. It then makes the same overwrite with the schema overwrite setting, which succeeds. The table goes from version {{out:delta-partition-overwrite:version before}} to version {{out:delta-partition-overwrite:version after}}, with {{out:delta-partition-overwrite:rows after}} rows in {{out:delta-partition-overwrite:data files after}} data files. Version {{out:delta-partition-overwrite:version before}} still reads back {{out:delta-partition-overwrite:rows in version 2}} rows under the day partition."
+
+[examples.ducklake-partition-alter]
+say = "The code loads three hours into a DuckLake table with inlining off, sets the table to partition by hour, and loads one more hour. It counts the data files before the change and after that load. The table has {{out:ducklake-partition-alter:data files before the change}} data files before the change and {{out:ducklake-partition-alter:data files after one load under hour}} after it. Of the files listed after the hour load, {{out:ducklake-partition-alter:files kept from before the change}} were listed before it. The catalog lists one partition key with the transform hour, and the table holds {{out:ducklake-partition-alter:rows in table}} rows."
+
+[[blocks]]
+section = "daily-to-hourly-partitions"
+starts = "with table.update_spec() as update:"
+say = "The code changes the Iceberg spec inside one update block: it removes the day field called ts day, then adds an hour field on the hour_utc column, named ts hour."
+
+[[tables]]
+section = "check-what-a-query-scans"
+starts = "| Stage | One-hour filter | Hour 04 filter | No filter |"
+say = "A table with two rows and four columns: the stage in the first column, then the planned files for a one-hour filter, for an hour 04 filter, and for a full scan. Before the change, the one-hour filter plans {{out:plan-files-by-partition:before the change, one-hour filter plans}} file, the hour 04 filter plans {{out:plan-files-by-partition:before the change, hour 04 filter plans}} files, and the full scan plans {{out:plan-files-by-partition:before the change, no filter plans}}. After the change, the one-hour filter plans {{out:plan-files-by-partition:after the change, one-hour filter plans}} file, the hour 04 filter plans {{out:plan-files-by-partition:after the change, hour 04 filter plans}} file, and the full scan plans {{out:plan-files-by-partition:after the change, no filter plans}}."
+
+[[blocks]]
+section = "partitioning-in-other-formats"
+starts = "DeltaError: Generic error"
+say = "The error the Delta Lake library returns when the partition column is changed without the schema overwrite setting. It says the table's partitioning expects day and gets hour, and that a change needs a full table overwrite with the schema overwrite setting and no replace predicate."
+
+[[tables]]
+section = "partitioning-in-other-formats"
+starts = "| Format | How the change is made | Files already written | What to check after |"
+say = "A table with three rows and four columns, one row per format. For each format it gives how the change is made, what happens to the files already written, and what to check afterwards. Iceberg keeps its files under the old spec. Delta Lake writes them again. DuckLake keeps them and applies the setting to later loads."

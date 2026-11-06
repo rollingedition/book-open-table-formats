@@ -1,0 +1,5 @@
+written distinct values: 2
+iceberg append: UnsupportedPyArrowTypeException: Column 'hour_utc' has an unsupported type: timestamp[ns]
+delta read back as microseconds: [1000000, 1000000]
+delta distinct values read back: 1
+ducklake epoch nanoseconds read back: [1000000500, 1000000999]

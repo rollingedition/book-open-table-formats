@@ -1,0 +1,10 @@
+version before the rename: 0
+set_column_metadata returned
+version after the rename: 1
+name in page_title metadata after the rename: article_title
+columns read back: hour_utc, domain_code, page_title, views, response_bytes
+BinderException: Binder Error: Referenced column "article_title" not found in FROM clause!
+Candidate bindings: "page_title", "domain_code", "hour_utc", "views", "response_bytes"
+
+LINE 1: SELECT article_title FROM t
+               ^^^^^^^^^^^^^

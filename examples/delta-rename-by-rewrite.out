@@ -1,0 +1,7 @@
+data files before the rewrite: 3
+version before the rewrite: 2
+columns before the rewrite: hour_utc, domain_code, page_title, views, response_bytes
+data files after the rewrite: 1
+version after the rewrite: 3
+columns after the rewrite: hour_utc, domain_code, article_title, views, response_bytes
+rows after the rewrite: 1499

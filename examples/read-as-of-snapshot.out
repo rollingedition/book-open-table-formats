@@ -1,0 +1,7 @@
+snapshot 2 rows: 999
+snapshot 2 views: 580963
+snapshot 3 rows: 1499
+snapshot 3 views: 899451
+current rows: 1499
+current equals snapshot 3: True
+read by label: ValueError: Snapshot not found: 2

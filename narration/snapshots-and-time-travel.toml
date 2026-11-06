@@ -1,0 +1,15 @@
+# Spoken descriptions for chapter 2 (docs/specs/audio.md). Each example, fenced block and table gets one.
+
+[examples.snapshot-history]
+say = "Example: snapshot history. The code appends three hours of pageviews to an Iceberg table and writes the same hours to a Delta Lake table, then lists each commit in order with its operation and the rows it added. Iceberg prints snapshot 1 to snapshot 3, and Delta Lake prints its own version numbers, version 0 to version 2, which count from 0. Snapshot 1 added {{out:snapshot-history:snapshot 1 rows added}} rows, and snapshots 2 and 3 each added {{out:snapshot-history:snapshot 2 rows added}}."
+
+[examples.read-as-of-snapshot]
+say = "Example: read as of a snapshot. The code reads the table as of snapshot 2 and snapshot 3, by ID, and adds up the rows and views in each. It then reads the current table and checks that its rows match snapshot 3's rows. Snapshot 2 has {{out:read-as-of-snapshot:snapshot 2 rows}} rows and {{out:read-as-of-snapshot:snapshot 2 views}} views. Last, it passes the number 2 as an ID, which fails, and prints the error: {{out:read-as-of-snapshot:read by label}}."
+
+[examples.three-version-numbers]
+say = "Example: three version numbers. The code commits the same three hours to a Delta Lake table and a DuckLake table, then reads each hour back by its number and prints the row counts side by side. Before the first insert, the DuckLake catalog holds {{out:three-version-numbers:snapshots before the first insert}} snapshots, so the first insert is snapshot 4. After hour 00, Delta version 0 has {{out:three-version-numbers:after hour 00, Delta version 0 rows}} rows, and DuckLake snapshot 4 has {{out:three-version-numbers:after hour 00, DuckLake snapshot 4 rows}}. Each hour shows the same row count in both formats. The last line selects the time column from the DuckLake snapshot list, which fails because a module is missing, and the code prints the error."
+
+[[tables]]
+section = "versions-in-ducklake-and-delta"
+starts = "| Format |"
+say = "A table with three rows, one for each format. For each format it gives the number that names a commit, which changes it counts, and the call that reads a commit by that number. Iceberg uses a snapshot ID, a long integer, that counts each commit. Delta Lake uses a version for each commit, counted from 0, and is read with DeltaTable and a version number. DuckLake uses a snapshot number, counted from 0, that counts every change to the catalog, including schema and table creation, and is read with AT VERSION. The book labels that snapshot one higher, so the labels count from 1 in both formats."

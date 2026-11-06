@@ -1,0 +1,18 @@
+iceberg snapshots before the add: 3
+iceberg data files before the add: 3
+iceberg snapshots after the add: 3
+iceberg data files after the add: 3
+iceberg rows in the table: 2999
+iceberg rows written before the add: 1499
+iceberg rows written before the add with load_batch null: 1499
+iceberg rows written after the add: 1500
+iceberg rows written after the add with load_batch null: 0
+delta version before the add: 2
+delta data files before the add: 3
+delta version after the add: 3
+delta data files after the add: 3
+delta rows in the table: 2999
+delta rows written before the add: 1499
+delta rows written before the add with load_batch null: 1499
+delta rows written after the add: 1500
+delta rows written after the add with load_batch null: 0

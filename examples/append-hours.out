@@ -1,0 +1,11 @@
+snapshot 1 operation: append
+snapshot 1 rows added: 499
+snapshot 2 operation: append
+snapshot 2 rows added: 500
+snapshot 3 operation: append
+snapshot 3 rows added: 500
+rows in table: 1499
+data files: 3
+repeat of hour 00 operation: append
+repeat of hour 00 rows added: 499
+rows in table after the repeat: 1998

@@ -1,0 +1,7 @@
+minimum reader version: 3
+minimum writer version: 7
+reader features: deletionVectors, timestampNtz, variantType
+rows deleted: 82
+data files rewritten: 1
+rows through QueryBuilder: 417
+deletion vector files: 0
