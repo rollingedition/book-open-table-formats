@@ -19,7 +19,7 @@ pydantic==2.14.3
 pydantic_core==2.50.4
 Pygments==2.21.0
 pyiceberg==0.12.0
-pyiceberg-core==0.10.1
+pyiceberg-core==0.11.0
 pyparsing==3.3.3
 pyroaring==1.2.0
 python-dateutil==4.0.0
