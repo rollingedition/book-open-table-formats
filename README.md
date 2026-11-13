@@ -43,7 +43,7 @@ cd examples && ../.venv/bin/python rough-lakehouse.py
 
 ## How this book stays current
 
-When a library this book uses releases a new version, every example runs again in the new version. Agents draft any fix and check every change, and a change merges once its checks pass; one with a serious risk, such as a security or copyright problem, waits for a Rolling Edition maintainer. Anyone can check the book or correct it with a pull request. Each new edition is stamped with its date, its examples passing and what changed. [See what changed in each edition](https://rollingedition.com/open-table-formats/changes).
+When a library this book uses releases a new version, the examples that use it run again in the new version, and every example runs again each week. Agents draft any fix and check every change, and a change merges once its checks pass; one with a serious risk, such as a security or copyright problem, waits for a Rolling Edition maintainer. Anyone can check the book or correct it with a pull request. Each new edition is stamped with its date, its examples passing and what changed. [See what changed in each edition](https://rollingedition.com/open-table-formats/changes).
 
 ## Contribute
 
