@@ -1,4 +1,4 @@
-"""Upsert the corrected hour 02 into the Iceberg table on its key, then upsert the same batch again. The point rests on the rows-updated and rows-inserted lines, and on the snapshot lines, which show what the one call committed."""
+"""Upserts the corrected hour 02, with its late row, into the Iceberg table, then upserts the same batch again. The snapshot lines carry the point, in the order the commits were made."""
 
 import pyarrow as pa
 

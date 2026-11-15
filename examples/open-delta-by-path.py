@@ -1,4 +1,5 @@
-"""Open a Delta Lake table by its path, with no catalog, and read it through QueryBuilder."""
+"""Open a Delta Lake table by its path, with no catalog, and read its first version and its current one. The point
+rests on the 'rows at that version' and 'rows at version 0' lines, and the missing-path line shows the error."""
 
 from deltalake import DeltaTable, write_deltalake
 
@@ -7,16 +8,16 @@ from lib.lakehouse import new_warehouse, read_cut_hour, read_delta
 with new_warehouse() as wh:
     path = str(wh.root / "delta" / "pageviews_hourly")
     for hour in range(3):
-        write_deltalake(path, read_cut_hour(hour), mode="append")
+        write_deltalake(path, read_cut_hour(hour), mode="append")   # each append is one version, counted from 0
 
     table = DeltaTable(path)
     print("delta version:", table.version())
     print("rows at that version:", read_delta(path).num_rows)
-    print("rows at version 0:", read_delta(path, version=0).num_rows)
+    print("rows at version 0:", read_delta(path, version=0).num_rows)   # version 0 is the first append alone
 
     # The path is the only name a Delta table has here: a wrong path is a missing table.
     try:
-        DeltaTable(str(wh.root / "delta" / "pageviews_typo"))
+        DeltaTable(str(wh.root / "delta" / "pageviews_typo"))           # a path never written, so no log to open
         print("missing path: opened")
     except Exception as exc:
         print("missing path:", type(exc).__name__)

@@ -1,4 +1,4 @@
-"""MERGE one changed language label into the DuckLake copy of the domains table, then run the same MERGE again. The point rests on the changed-row line of the second run and on the sorted table, which shows the new label."""
+"""Merges one changed language label into the DuckLake copy of the domains table, then runs the same MERGE again. Read the second changed-row line against the sorted table, which shows the label that merged in."""
 
 import pyarrow as pa
 

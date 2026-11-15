@@ -1,4 +1,4 @@
-"""Send a batch that holds one key twice to an Iceberg upsert and to a DuckLake MERGE, and print each refusal with the row count after it. The point rests on the two error lines, which name the cause, and on the counts that follow them."""
+"""Sends a batch with one key twice to an Iceberg upsert and to a DuckLake MERGE, and prints each refusal with the row count after it. The two error lines carry the point: each names the cause of its refusal."""
 
 import pyarrow as pa
 
@@ -21,7 +21,7 @@ def main():
         # A corrected row, sent twice: the batch holds two rows with one key.
         before = read_cut_hour(2)["views"].to_pylist()  # the cut's views, to find the rows the correction changed
         changed = [i for i, after in enumerate(corrected["views"].to_pylist()) if after != before[i]]
-        doubled = pa.concat_tables([corrected, corrected.slice(changed[0], 1)])  # the first changed row, appended again
+        doubled = pa.concat_tables([corrected, corrected.slice(changed[0], 1)])
 
         try:
             iceberg.upsert(doubled, join_cols=list(KEY))

@@ -1,4 +1,4 @@
-"""MERGE the corrected hour 02, and its late row, into the DuckLake copy, then run the same MERGE again. The point rests on the source-matched line, which splits the changed count into inserts and updates, and on the two changed-row lines."""
+"""Merges the corrected hour 02 and its late row into the DuckLake copy with a SQL MERGE, then runs the same MERGE again. The matched-row line splits the changed count into inserts and updates; the second changed-row line is the rerun."""
 
 import pyarrow as pa
 
