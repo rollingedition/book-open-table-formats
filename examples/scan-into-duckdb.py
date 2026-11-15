@@ -1,7 +1,6 @@
 """Read the current Iceberg snapshot into DuckDB and check the totals.
 
 The point that DuckDB received every row rests on the two total views lines, which the assert compares.
-The top five list shows what the query returns, in the order it sorts them.
 """
 
 from lib.lakehouse import (

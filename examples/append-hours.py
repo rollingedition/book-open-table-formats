@@ -1,6 +1,6 @@
 """Create the Iceberg table, append hours 00 to 02 as three commits, then repeat hour 00.
 
-The point about repeated loads rests on the last two lines: the repeat adds rows, and no error is raised.
+The hour 00 point rests on the `snapshot 1 rows added` and `snapshot 2 rows added` lines, and the repeated-load point on the two `repeat of hour 00` lines.
 """
 
 from lib.lakehouse import (
@@ -18,7 +18,6 @@ def main():
     try:
         with new_warehouse() as wh:
             table = create_iceberg_table(wh)
-            # Hours 00, 01 and 02, one commit each, in hour order.
             for hour in range(3):
                 table.append(read_cut_hour(hour))
 
@@ -36,7 +35,7 @@ def main():
             # Counted from the current snapshot, not from the folder.
             print(f"data files: {iceberg_file_count(table)}")
 
-            # Hour 00 again. An append does not check whether its rows are already in the table.
+            # Hour 00 again.
             table.append(read_cut_hour(0))
             repeat = table.current_snapshot()
             print(f"repeat of hour 00 operation: {repeat.summary.operation.value}")

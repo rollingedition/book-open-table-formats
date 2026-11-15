@@ -53,7 +53,7 @@ The Delta half follows the same sequence: three early hours as three appends, th
 
 Before the add there are {{out:add-column-to-existing-files:delta rows written before the add}} rows, all null for `load_batch`. Once the three later appends are in, the table has {{out:add-column-to-existing-files:delta rows in the table}} rows, and {{out:add-column-to-existing-files:delta rows written after the add with load_batch null}} of the {{out:add-column-to-existing-files:delta rows written after the add}} rows written after the add are null. This table has no column mapping, a point [the Delta Lake rename section](#rename-in-delta-lake) returns to.
 
-Both formats give the same result for this case. The old rows stay as they were written, and the column reads as null for them. Neither format gained a data file. The two halves hold the same row counts and the same null counts, so a disagreement between them would point at a reader, not at the data.
+Both formats give the same result for this case. The old rows stay as they were written, and the column reads as null for them. The writer did not have to touch a single old file. The two halves hold the same row counts and the same null counts, so a disagreement between them would point at a reader, not at the data.
 
 **Working rule:** Add a column with the format's own call, and never by rewriting the files. Expect the rows written before the add to read null for the column, and check that they do.
 
@@ -65,7 +65,7 @@ That makes the null count a useful check. Count the nulls by hour, as [the add e
 
 If a count falls outside that pattern, a writer sent a different set of columns, or sent the column with nulls, and the cause is in the pipeline, not in the format. Look at the writer for the rows that break the pattern before you query the column, because a query over a column that is partly null will return an answer that looks reasonable.
 
-**Working rule:** After an add, count nulls in the added column by hour of the day. Rows written before the add should be null, and rows written after it should not be. Any other pattern means a writer sent a different set of columns, or sent nulls in the column, so find that writer before you trust the column.
+**Working rule:** After an add, count nulls in the added column by hour of the day, where each hour is one write. Rows written before the add should be null, and rows written after it should not be. Any other pattern means a writer sent a different set of columns, or sent nulls in the column, so find that writer before you trust the column.
 
 ## Rename a column by its ID without rewriting files {#rename-column-without-rewrite}
 
@@ -82,7 +82,7 @@ To check that the ID survives, write three hours, read the field ID of `page_tit
 
 The rename keeps the field ID. `page_title` has ID {{out:rename-by-id:page_title field ID before the rename}} before the call, and `article_title` has ID {{out:rename-by-id:article_title field ID after the rename}} after it.
 
-The data file count is {{out:rename-by-id:data files before the rename}} before the call and {{out:rename-by-id:data files after the rename}} after it, so the file count did not change. The DuckDB query counts {{out:rename-by-id:article_title not null}} non-null `article_title` values out of {{out:rename-by-id:rows}} rows. Every row counts, including the rows written under `page_title`, because the reader matches the files by ID and reads them under the new name.
+The data file count is {{out:rename-by-id:data files before the rename}} before the call and {{out:rename-by-id:data files after the rename}} after it, so no file was rewritten. The DuckDB query counts {{out:rename-by-id:article_title not null}} non-null `article_title` values out of {{out:rename-by-id:rows}} rows. Every row counts, including the rows written under `page_title`, because the reader matches the files by ID and reads them under the new name.
 
 The dashboards need the name, and the table does not have to be rewritten to give it to them. The data stays as it was written, and the next read sees the renamed column. The run also prints the first snapshot's columns, which are `hour_utc`, `domain_code`, `page_title`, `views` and `response_bytes`. A snapshot reads with the schema it was written with, so an older snapshot still reports the old name. [Chapter 2](#snapshots-and-time-travel) covers reading older snapshots in general, and the point here is narrower: a rename does not reach back into the history.
 
@@ -128,7 +128,7 @@ Third, the null that looks like missing data. An added column reads as null in e
 
 Last, the schema change that does not show in the snapshot list. The Iceberg add and rename both left the snapshot count where it was, and the file count too. A tool that looks for schema changes by counting snapshots will miss them. Compare the schema itself, by field ID and name, when you need to know what changed.
 
-**Working rule:** After any schema change, do three things before a downstream query runs: read the column names back through the library, count nulls in each added column by hour, and compare the schema, not the snapshot count, with what the change was meant to do.
+**Working rule:** After any schema change, do three things before a downstream query runs: read the column names back through the library, count nulls in each added column by hour, where each hour is one write, and compare the schema, not the snapshot count, with what the change was meant to do.
 
 ## Decisions this chapter made {#schema-decisions}
 
@@ -137,7 +137,7 @@ The table in this section sets the two formats side by side for the changes in t
 | Change | Iceberg | Delta Lake |
 | --- | --- | --- |
 | Add a column | Works. Old rows read null, and the snapshot count stays at {{out:add-column-to-existing-files:iceberg snapshots before the add}} | Works. Old rows read null, and the version goes up by one |
-| Rename a column | Works. The field ID stays the same, and the data file count does not change | No rename call. `set_column_metadata` commits and changes no name; a rewrite gives the name |
+| Rename a column | Works. The field ID stays the same, and no data file is rewritten | No rename call. `set_column_metadata` commits and changes no name; a rewrite gives the name |
 | Read an older snapshot or version | Shows the older name | Shows the older name |
 
 - Add a column to a table that already holds data, in both formats. Old rows read it as null, and the add example shows the counts by hour that confirm the pattern. We recommend this over any copy of the table, because it writes no old file.
