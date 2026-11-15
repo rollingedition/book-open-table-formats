@@ -1,7 +1,6 @@
-"""Rename page_title to article_title in Iceberg, then read old files under the new name.
-
-Iceberg keeps each column's field ID across a rename, so the three files
-written under page_title are read under article_title without a rewrite.
+"""Rename page_title to article_title in Iceberg, then read the old files under the new name.
+The prose's point rests on the two field ID lines, which match, and on the non-null count, which equals the rows: no file
+is rewritten, and every row written under page_title reads under article_title.
 """
 
 import pyarrow as pa
@@ -21,7 +20,7 @@ with new_warehouse() as wh:
     for hour in range(3):
         table.append(read_cut_hour(hour))
 
-    before = table.schema().find_field("page_title").field_id
+    before = table.schema().find_field("page_title").field_id  # the ID is what the reader matches on, not the name
     print(f"page_title field ID before the rename: {before}")
     print(f"data files before the rename: {iceberg_file_count(table)}")
     with table.update_schema() as update:
@@ -31,9 +30,11 @@ with new_warehouse() as wh:
 
     rows = scan_arrow(table)
     print(f"rows: {rows.num_rows}")
+    # count(column) leaves out nulls, so this counts the rows that have a value under the new name
     count = sql_rows(wh.con, "SELECT count(article_title) FROM t", t=rows)[0][0]
     print(f"article_title not null: {count}")
 
     labels = snapshot_labels([snapshot.snapshot_id for snapshot in table.snapshots()])
-    first = table.snapshots()[0].snapshot_id
+    first = table.snapshots()[0].snapshot_id  # the first snapshot, written before the rename
+    # the snapshot reads with the schema it was written with, so this still lists page_title
     print(f"{labels[first]} columns: {', '.join(scan_arrow(table, snapshot_id=first).column_names)}")
