@@ -1,6 +1,5 @@
-"""Rename page_title to article_title in Iceberg, then read the old files under the new name.
-The prose's point rests on the two field ID lines, which match, and on the non-null count, which equals the rows: no file
-is rewritten, and every row written under page_title reads under article_title.
+"""Renames a column in an Iceberg table and reads the old files back under the new name.
+Read the field ID lines, the data file lines and the non-null count, which show what the rename kept.
 """
 
 import pyarrow as pa
@@ -36,5 +35,4 @@ with new_warehouse() as wh:
 
     labels = snapshot_labels([snapshot.snapshot_id for snapshot in table.snapshots()])
     first = table.snapshots()[0].snapshot_id  # the first snapshot, written before the rename
-    # the snapshot reads with the schema it was written with, so this still lists page_title
     print(f"{labels[first]} columns: {', '.join(scan_arrow(table, snapshot_id=first).column_names)}")

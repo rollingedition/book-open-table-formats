@@ -38,7 +38,7 @@ def main():
         for hour, (delta_version, snapshot) in enumerate(zip(delta_versions, inserts, strict=True)):
             # DuckLake reads by the snapshot ID from ducklake_snapshots, never by counting the inserts.
             lake = sql_rows(wh.con, f"SELECT count(*) FROM {LAKE_TABLE} AT (VERSION => {snapshot})")[0][0]
-            rows = len(read_delta(delta_path, version=delta_version))     # read_delta is the only Delta read path here
+            rows = len(read_delta(delta_path, version=delta_version))     # read_delta goes through QueryBuilder, because to_pyarrow_table() aborted at exit in some test runs at these pins.
             print(f"after hour {hour:02d}, Delta version {delta_version} rows: {rows}")
             print(f"after hour {hour:02d}, DuckLake {lake_labels[snapshot]} rows: {lake}")
 

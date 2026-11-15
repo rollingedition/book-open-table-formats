@@ -1,5 +1,5 @@
-"""Add load_batch to a table that already holds three hours, in Iceberg and in Delta Lake, then count nulls on each side of the add.
-The prose's point rests on the two "with load_batch null" lines: every row written before the add reads null, and none written after it does.
+"""Adds load_batch to a table that already holds three hours, in Iceberg and then in Delta Lake, and counts the nulls on each side of the add.
+Read the four "with load_batch null" lines, which show the rows before the add and the rows after it in each format.
 """
 
 import pyarrow as pa
@@ -27,7 +27,7 @@ with new_warehouse() as wh:
         update.add_column("load_batch", IntegerType())
     print(f"iceberg snapshots after the add: {len(table.snapshots())}")
     print(f"iceberg data files after the add: {iceberg_file_count(table)}")
-    for hour in range(3, 6):  # hours 03 to 05, written after the add and stamped with their hour
+    for hour in range(3, 6):  # hours 03 to 05, written after the add
         table.append(stamp(read_cut_hour(hour), hour))
     iceberg_rows = table.scan().to_arrow()
     print(f"iceberg rows in the table: {iceberg_rows.num_rows}")
@@ -42,7 +42,7 @@ with new_warehouse() as wh:
     DeltaTable(path).alter.add_columns([Field("load_batch", PrimitiveType("integer"))])
     print(f"delta version after the add: {DeltaTable(path).version()}")
     print(f"delta data files after the add: {delta_file_count(DeltaTable(path))}")
-    for hour in range(3, 6):  # hours 03 to 05, written after the add and stamped with their hour
+    for hour in range(3, 6):  # hours 03 to 05, written after the add
         write_deltalake(path, stamp(read_cut_hour(hour), hour), mode="append")
     delta_rows = read_delta(path)
     print(f"delta rows in the table: {delta_rows.num_rows}")

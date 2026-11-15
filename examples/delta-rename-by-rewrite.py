@@ -1,6 +1,5 @@
-"""Rename a Delta Lake column by rewriting the table, then read the old version back.
-The prose's point rests on the columns before and after lines: version 2 still reads page_title, and version 3, the rewrite,
-reads article_title. Older versions keep the names they were written with. Delta numbers versions from 0.
+"""Renames a Delta Lake column by overwriting the table with renamed data and schema, then reads the version before the rewrite back.
+Compare the two columns lines: the version before the rewrite, and the version the rewrite makes.
 """
 
 from deltalake import DeltaTable, write_deltalake

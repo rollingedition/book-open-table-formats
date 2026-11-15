@@ -1,6 +1,5 @@
-"""Rename a Delta Lake column with set_column_metadata, then read the names back.
-The prose's point rests on the columns read back line, which still shows page_title, and on the binder error after it:
-the call returns and writes a commit, but the column keeps its name, so a query that uses the new name fails.
+"""Calls set_column_metadata with a name key on a Delta Lake table with column mapping on, then reads the names back and queries
+under the new name. The columns read back line and the binder error are the lines to read.
 """
 
 from deltalake import DeltaTable, write_deltalake
@@ -13,6 +12,7 @@ with new_warehouse() as wh:
     write_deltalake(path, read_cut_hour(0),
                     configuration={"delta.columnMapping.mode": "name"})
     print(f"version before the rename: {DeltaTable(path).version()}")
+    # the call raises nothing and writes a commit, so the names read back below are the only check
     DeltaTable(path).alter.set_column_metadata("page_title", {"name": "article_title"})
     print("set_column_metadata returned")
     table = DeltaTable(path)

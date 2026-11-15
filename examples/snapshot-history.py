@@ -17,12 +17,12 @@ def main():
 
         # sequence_number counts commits, so sorting by it puts the labels in commit order.
         snapshots = sorted(table.snapshots(), key=lambda snapshot: snapshot.sequence_number)
-        labels = snapshot_labels([snapshot.snapshot_id for snapshot in snapshots])   # IDs are long integers, never printed
+        labels = snapshot_labels([snapshot.snapshot_id for snapshot in snapshots])
         for snapshot in snapshots:
             label = labels[snapshot.snapshot_id]
             operation = snapshot.summary.operation.value
             print(f"{label} operation: {operation}")
-            # The summary's added-records is the number of rows this one commit added.
+            # added-records counts only this commit's rows, not the table's running total.
             print(f"{label} rows added: {snapshot.summary['added-records']}")
 
         # Sorted by version, so the lines follow Delta's own numbering whatever order history returns.

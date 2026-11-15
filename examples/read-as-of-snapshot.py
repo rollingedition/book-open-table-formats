@@ -26,7 +26,7 @@ def main():
         current = scan_arrow(table)                  # no snapshot_id, so this reads the current snapshot
         last = scan_arrow(table, snapshot_id=ids[2])
         print(f"current rows: {current.num_rows}")
-        # Arrow's equals compares every row and column, not only the count.
+        # equals compares every row and column, in order; scan_arrow sorts both tables by every column, so row order cannot differ.
         assert current.equals(last)
 
         try:
