@@ -25,11 +25,12 @@ def check_iceberg_to_ducklake():
         print(f"iceberg to ducklake rows: {len(source_rows)} and {len(copy_rows)}")
         matches = same(source_rows, copy_rows)
         # printed before the assert, so a failing run still shows the word
-        print(f"iceberg to ducklake digests: {'same' if matches else 'different'}")
+        print(f"iceberg to ducklake digests: {'match' if matches else 'differ'}")
         assert matches
         still_matches = same(source_rows, changed)
-        print(f"iceberg to ducklake with one changed view count digests: {'same' if still_matches else 'different'}")
-        assert not still_matches                  # one changed count must change the digest
+        print(f"iceberg to ducklake with one changed view count digests: {'match' if still_matches else 'differ'}")
+        # one changed count must change the digest
+        assert not still_matches
 
 
 def check_delta_to_iceberg():

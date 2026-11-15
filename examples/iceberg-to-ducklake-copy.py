@@ -1,7 +1,7 @@
 """Copy an Iceberg table into DuckLake through Arrow, then print what the copy kept of the layout and the history.
 
 The point rests on the copy partition transforms and copy files per partition lines, which show whether the
-layout arrived with the rows."""
+layout arrived with the rows, and on the copy snapshot lines, which show the history starting at the copy."""
 
 from pyiceberg.partitioning import PartitionField, PartitionSpec
 from pyiceberg.transforms import HourTransform
@@ -33,7 +33,7 @@ def main():
             files = ducklake_files_by_partition(wh.con, "lake", TABLE)
             print(f"copy partition values: {[value for value, _, _ in files]}")
             print(f"copy files per partition: {[count for _, count, _ in files]}")
-            print(f"copy rows per partition: {[int(rows) for _, _, rows in files]}")  # int() turns the summed row count into a plain number
+            print(f"copy rows per partition: {[int(rows) for _, _, rows in files]}")
             changes = wh.con.execute("SELECT changes FROM ducklake_snapshots('lake') ORDER BY snapshot_id").fetchall()
             # labels start at 1, so label N is the snapshot whose snapshot_id is N-1
             for number, (change,) in enumerate(changes, start=1):

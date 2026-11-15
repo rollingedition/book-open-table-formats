@@ -18,7 +18,7 @@ def main():
         with new_warehouse() as wh:
             # cast to int64 gives the integer behind each timestamp, so distinct values are counted exactly
             print(f"written distinct values: {len(set(NANOSECONDS['hour_utc'].cast(pa.int64()).to_pylist()))}")
-            # TimestampType is Iceberg's microsecond timestamp, the only timestamp this table's schema can use
+            # TimestampType stores microseconds; a version 2 table has no nanosecond type to declare instead
             table = wh.catalog.create_table(
                 f"{NAMESPACE}.precision",
                 schema=Schema(NestedField(1, "hour_utc", TimestampType(), required=False)),
