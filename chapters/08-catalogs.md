@@ -6,7 +6,7 @@ chapter_id: catalogs
 
 In this chapter you register an Iceberg table in a SQL catalog, attach a DuckLake catalog, open a Delta Lake table by its path, and run one DuckDB statement that joins a table from Iceberg with a table from DuckLake. You also learn what each catalog holds, and what happens to a table when its catalog and its data files disagree.
 
-The earlier chapters opened each table by its own route: a catalog object for Iceberg, a file for DuckLake, a folder for Delta Lake. Every chapter uses the same table, `wiki.pageviews_hourly`, the hourly view counts of Wikimedia pages. [The first table](#create-catalog-and-table) registered it in an Iceberg SQL catalog under the name `local`. This chapter explains what that name does, and what each format uses in its place. It also adds a second table, `wiki.domains`. It is a {{out:attach-ducklake:rows written}}-row list of domain codes and the language each one is in. That table lives in the DuckLake catalog, and [the join section](#join-tables-from-two-catalogs) joins it to the Iceberg pageviews.
+The earlier chapters opened each table by its own route: a catalog object for Iceberg, a file for DuckLake, a folder for Delta Lake. [The first table](#create-catalog-and-table) registered `wiki.pageviews_hourly` in an Iceberg SQL catalog under the name `local`. This chapter explains what that name does, and what each format uses in its place. It also adds a second table, `wiki.domains`. It is a {{out:attach-ducklake:rows written}}-row list of domain codes and the language each one is in. That table lives in the DuckLake catalog, and [the join section](#join-tables-from-two-catalogs) joins it to the Iceberg pageviews.
 
 ## What a catalog holds {#what-a-catalog-holds}
 
@@ -66,17 +66,17 @@ The next example creates `wiki.domains` in a fresh DuckLake catalog, detaches it
 
 The {{out:attach-ducklake:rows written}} rows of `wiki.domains` are written, and {{out:attach-ducklake:rows after re-attach}} rows read back after the re-attach. The table list shows one table in the `wiki` schema, `domains`. The second attach needed no data path, because the file already held it. The listing comes from the catalog, not from the data folder. The catalog file holds the list of tables, and the data folder holds the bytes. Losing the first loses the names even when the second is intact, as [the failure section](#catalog-production-failures) shows.
 
-The [same connecting page](https://ducklake.select/docs/stable/duckdb/usage/connecting) says that DuckLake inlines small inserts into the catalog database, with a default limit of 10 rows. The helper this chapter uses sets the limit to 0, so every insert in these examples becomes a Parquet file in the data folder. Without that setting, a small table lives in the catalog file, and a copy of the data folder would not hold its rows. That is one reason the catalog file needs a backup of its own.
+The [same connecting page](https://ducklake.select/docs/stable/duckdb/usage/connecting) says that DuckLake inlines small inserts into the catalog database, with a default limit of 10 rows. The helper this chapter uses sets the inlining limit to 0, so every insert in these examples becomes a Parquet file in the data folder, the setting [chapter 1](#what-a-table-format-adds) explains. Without that setting, a small table lives in the catalog file, and a copy of the data folder would not hold its rows. That is one reason the catalog file needs a backup of its own.
 
 **Working rule:** Back up a DuckLake catalog file with the data folder, and copy the file while no session has it attached. Give the data path when you create a catalog, and attach later with the catalog file alone.
 
 ## Find a table by path, with no catalog {#find-delta-by-path}
 
-A Delta Lake table in this book is a folder. It has no catalog, and nothing in this book's setup names it apart from its path. The `deltalake` package opens the folder with `DeltaTable(path)`, and every read goes through that path. Delta counts versions from 0, so the three appends in the next example are versions 0, 1 and 2.
+A Delta Lake table in this book is a folder. It has no catalog, and nothing in this book's setup names it apart from its path. The `deltalake` package opens the folder with `DeltaTable(path)`, and every read goes through that path. The three appends in the next example are versions 0, 1 and 2.
 
 [Example: open-delta-by-path](../examples/open-delta-by-path.py)
 
-The table's current version is {{out:open-delta-by-path:delta version}}, and it reads {{out:open-delta-by-path:rows at that version}} rows. Version 0 holds {{out:open-delta-by-path:rows at version 0}} rows, the first hour alone. The rows here come through `read_delta`, which reads through deltalake's `QueryBuilder` and returns an Arrow table. The [decisions](#catalog-decisions) at the end of this chapter say why the book reads Delta tables that way.
+The table's current version is {{out:open-delta-by-path:delta version}}, and it reads {{out:open-delta-by-path:rows at that version}} rows. Version 0 holds {{out:open-delta-by-path:rows at version 0}} rows, the first hour alone. The rows here come through `read_delta`, which returns an Arrow table. The [decisions](#catalog-decisions) at the end of this chapter say why the book reads Delta tables that way.
 
 The path is the whole name, so a typo in it is a missing table. The example opens a folder that does not exist, and `DeltaTable` raises `TableNotFoundError`. The error names the path it tried, but only once the wrong path has been used, so the check belongs in the code that builds the path.
 
@@ -104,7 +104,7 @@ We recommend a cross-catalog join for lookups like this one: a small dimension t
 
 The symptoms are usually small: a count that stops moving, a namespace that is missing, or a read error on a table that was read before. Each case here starts from one of them.
 
-Three of the four failures in this chapter come with an example, so you can recognize them when they happen. The fourth is only named.
+Only the last failure below has no example.
 
 **The wrong catalog name.** The last line of [register-iceberg-table](#register-iceberg-in-sql-catalog) opens the same file under the name `other`. Listing the namespace then fails with `NoSuchNamespaceError: Namespace does not exist: wiki`. The table is still in the file. The SQL catalog scopes its tables by catalog name, so the second name sees an empty catalog. The message names the namespace, not the name, so the error looks like a missing schema. A job that builds its catalog name from configuration can fail this way after a small edit. You notice it at the first read, not at the write, so log the catalog name at the start of the job.
 
@@ -132,5 +132,5 @@ The safe order begins with what the example skipped. Back up the catalog file fi
 - **Delta tables are read through `QueryBuilder` only.** This is a measurement from the book's build, not a primary source. At the pinned versions, the other Arrow conversion methods aborted the process at exit in about 17 of 20 runs. The `QueryBuilder` path aborted in none of 24 runs, including reads of earlier versions.
 - **DuckLake is loaded by `connect_ducklake`, with downloads off.** Every example runs offline on the pinned DuckDB.
 - **The cleanup hazard runs in a temporary folder and prints counts only.** The book shows the failure so the order of the safe steps is clear. It does not print file names, which change on every run.
-- **Each example prints counts and labelled values only.** No example names a file, path or ID in its output, so the output reads the same on every run and on every machine.
+- **Each example prints counts and labelled values only,** for the reason in [chapter 1](#first-table-decisions): the output then reads the same on every run and on every machine.
 - **REST catalogs have no runnable example.** They need a network, so the chapter describes the protocol from its page and makes no claim about any product.

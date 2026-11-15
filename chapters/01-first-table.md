@@ -6,7 +6,7 @@ chapter_id: first-table
 
 By the end of this chapter you can commit batches of rows to a table, read the table back in DuckDB, and check the totals. This book is for data and analytics engineers who write SQL and Python and have to decide how their lakehouse tables are stored, changed, cleaned up, shared and moved between formats. It builds one result: a pageviews table that you store, change, read as of an earlier snapshot, clean up, register in a catalog and move between formats.
 
-Six hours of Wikipedia pageviews sitting in a folder are not yet a table. The folder does not say which of its files belong to the table, and a load that stops halfway leaves a file that looks like every other. The table this book builds is hourly: each row says how many times one public Wikipedia article was viewed in one hour, in one language edition. We call it the pageviews table.
+Six hours of Wikimedia pageviews, sitting in a folder, are not yet a table. The folder does not say which of its files belong to the table, and a load that stops halfway leaves a file that looks like every other. The table this book builds is hourly: each row says how many times one public Wikipedia article was viewed in one hour, in one language edition. We call it the pageviews table.
 
 This chapter builds a rough version of that table. It writes the table in three formats (Apache Iceberg, Delta Lake and DuckLake) and reads each back into DuckDB, so you can compare the totals. Each later chapter makes one step solid:
 
@@ -46,7 +46,7 @@ All three formats report the same row count and the same view total, and each on
 
 An assert stops the run if the three formats' row or view totals ever differ. The output then lists the three most-viewed titles over the six hours, read from the Iceberg table alone: `Main_Page`, `メインページ` and `Wikipedia:Hauptseite`, the main pages of the English, Japanese and German editions.
 
-The output carries no snapshot IDs, version numbers or file names, because those change from run to run. [Appending each hour](#append-each-hour) shows how the book prints snapshots without their IDs.
+The output carries no snapshot IDs, version numbers or file names, because those change from run to run, and [appending each hour](#append-each-hour) shows how snapshots are labelled instead.
 
 DuckLake needs one extra step on your own machine. Run `INSTALL ducklake` and then `LOAD ducklake` in DuckDB. The book's runs instead load a copy of DuckDB's official, signed `ducklake` extension from a file in the repository, so they run without a network connection. DuckLake also has an inlining default that matters for the file counts: by default, it keeps inserts of 10 rows or fewer in its catalog rather than in a Parquet file. The [DuckLake data inlining page](https://ducklake.select/docs/stable/duckdb/advanced_features/data_inlining) states the default: "Data inlining is enabled by default with a row limit of 10." The example sets the limit to 0, so every insert writes a file, and the file counts mean the same thing in every chapter.
 

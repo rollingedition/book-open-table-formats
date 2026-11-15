@@ -4,7 +4,9 @@ chapter_id: corrections-and-merges
 
 # Correct rows with deletes, updates and merges
 
-By the end of this chapter you can delete, upsert and merge rows in Iceberg, Delta Lake and DuckLake, say what each write does to the files, and count the snapshots a pyiceberg upsert adds. The table so far only grows. Every write in [chapter 1](#append-each-hour) added rows to `wiki.pageviews_hourly`, which counts Wikimedia pageviews hour by hour, and this chapter changes rows that are already committed. Each example starts from a fresh warehouse, so each one runs on its own, and each prints counts and labels that a reader can compare with the text.
+Rows already committed can be changed too: this chapter deletes, upserts and merges them in Iceberg, Delta Lake and DuckLake, says what each write does to the files, and counts the snapshots a pyiceberg upsert adds.
+
+So far the table only grows. Every write in [chapter 1](#append-each-hour) appended to `wiki.pageviews_hourly`, a table the source sometimes redelivers an hour into.
 
 ## Late data arrives as a correction {#late-data-as-correction}
 
@@ -74,7 +76,7 @@ Send the corrected hour and the late row through one `upsert`, and count what th
 
 One `upsert` call is not one commit: this one wrote {{out:redeliver-hour-upsert:snapshots added}} snapshots to update {{out:redeliver-hour-upsert:rows updated}} rows and insert {{out:redeliver-hour-upsert:rows inserted}}. The snapshot list shows what each one recorded.
 
-The first snapshot is an overwrite. It deletes {{out:redeliver-hour-upsert:snapshot 7 records deleted}} rows, the rows of the hour-02 file, and adds back {{out:redeliver-hour-upsert:snapshot 7 records added}} of them unchanged. The next two are appends. The second adds {{out:redeliver-hour-upsert:snapshot 8 records added}} changed rows, and the third adds {{out:redeliver-hour-upsert:snapshot 9 records added}} row, the late row. The labels come from `snapshot_labels`, so the numbers are the commit order, not the snapshot IDs, which change on every run.
+The first snapshot is an overwrite. It deletes {{out:redeliver-hour-upsert:snapshot 7 records deleted}} rows, the rows of the hour-02 file, and adds back {{out:redeliver-hour-upsert:snapshot 7 records added}} of them unchanged. The next two are appends. The second adds {{out:redeliver-hour-upsert:snapshot 8 records added}} changed rows, and the third adds {{out:redeliver-hour-upsert:snapshot 9 records added}} row, the late row. The labels come from `snapshot_labels`, so the numbers are the commit order.
 
 In the [pyiceberg {{version:pyiceberg}} source](https://raw.githubusercontent.com/apache/iceberg-python/pyiceberg-0.12.0/pyiceberg/table/__init__.py), `upsert` calls `overwrite` only when some rows changed, and `append` for the new rows only when there are some. `overwrite` writes two snapshots, a delete and an append. The library records the first as `overwrite`, because it also writes rows back. So a batch with changed and new rows adds three snapshots, one with only changed rows adds two, and one with only new rows adds one. Count them in the snapshot list, not from the library's call.
 
@@ -123,7 +125,7 @@ Merging one label, `fr` from `French` to `French (France)`, changes {{out:merge-
 
 ## What goes wrong in production {#corrections-production-failures}
 
-Three things go wrong with corrections in practice: a repeated key, a loop of single-row deletes, and a snapshot count that surprises whoever reads the table's history. Each one is cheap to check before the write and expensive to find afterwards, so the checks belong in the job that writes the batch.
+Corrections go wrong in practice through a repeated key, a loop of single-row deletes and a snapshot count that surprises whoever reads the history. Each one is cheap to check before the write and expensive to find afterwards, so the checks belong in the job that writes the batch.
 
 **A repeated key in the batch.** A correction sent twice, or two rows with the same key from a bad join, makes the batch invalid. This example sends one corrected row twice, and pyiceberg refuses the upsert before it writes anything.
 
@@ -131,7 +133,7 @@ Three things go wrong with corrections in practice: a repeated key, a loop of si
 
 Both refusals leave the table with every row it held before the write. The Iceberg upsert raises a `ValueError`, and the table still holds {{out:duplicate-source-keys:Iceberg rows after the failed upsert}} rows. The DuckLake merge raises an `InvalidInputException` that names the cause, a target row that matched more than one source row, and the table still holds {{out:duplicate-source-keys:DuckLake rows after the failed merge}} rows. A pipeline that catches the error and retries the same batch fails again, because the batch is the problem. Deduplicate the source by key before the write. Delta Lake's merge with a repeated key is not tested here ([see the first section](#late-data-as-correction)).
 
-**A loop of single-row deletes.** Copy-on-write makes each delete a commit that rewrites the files that hold its matches. Ten deletes in a loop rewrite the file that holds their matches ten times and leave ten snapshots or versions behind. This is a rule of thumb from the cost model, not a measurement in this chapter. Collect the rows to delete, then write one delete with a predicate that covers them.
+**A loop of single-row deletes.** Copy-on-write makes each delete a commit that rewrites the files that hold its matches. Ten deletes in a loop rewrite the file that holds their matches ten times and leave ten snapshots or versions behind. The cost model, not a measurement here, is what suggests it. Collect the rows to delete, then write one delete with a predicate that covers them.
 
 **A snapshot count that surprises the reader.** A single upsert with changed rows and new rows adds {{out:redeliver-hour-upsert:snapshots added}} snapshots in the [run above](#upserts-in-pyiceberg). A reader who expects one commit per change will find the history longer than the change log. The snapshots stay in the table's metadata until they are expired, which [chapter 7](#snapshots-keep-files-alive) covers, and each one keeps the files it refers to.
 
@@ -147,7 +149,7 @@ Both refusals leave the table with every row it held before the write. The Icebe
 - Deletion vectors are not used. At the pins, deltalake {{version:deltalake}} does not write them, and enabling the feature makes `to_pyarrow_table` and `to_pyarrow_dataset` refuse the table.
 - Upserts and merges are checked by running them twice: the second run changes no rows.
 - Snapshot counts are read from the snapshot list. The chapter does not treat one call as one commit.
-- The DuckLake examples turn inlining off, so that the counts describe data files.
+- The DuckLake examples turn inlining off, as [chapter 1](#what-a-table-format-adds) explains, so the counts describe data files.
 - The corrections are built in code, and the late row is generated, so what these examples show is the write path, not the history of a real correction.
 - The duplicate-key example shows the refusal itself, not a description of it, so the failure is in the output a reader sees.
 - The chapter has no Delta Lake upsert or merge example, so it makes no claim about deltalake's merge beyond the delete.

@@ -4,11 +4,11 @@ chapter_id: migrating-formats
 
 # Move a table between formats and check the copy
 
-By the end of this chapter you can copy a table from one format into another and check that the copy holds the same rows. You can also name what the copy leaves behind, and decide which losses to accept and which should stop the move.
+You will finish this chapter able to copy a table from one format into another and check that the copy holds the same rows. You can also name what the copy leaves behind, and decide which losses to accept and which should stop the move.
 
-Suppose the analysts want the pageviews table in DuckLake, where they query a catalog file through DuckDB. The table, [`wiki.pageviews_hourly`](#land-three-hours), which holds the Wikimedia view counts by hour, has lived in Apache Iceberg since the earlier chapters. Another team keeps its tables in Delta Lake and wants the same rows in Iceberg. In both moves the source stays where it is, and the move is a copy into a new table. A copy is a one-time write, and most of the work is in the checks around it. The chapter makes both copies, then adds the checks that catch silent losses.
+The analysts want the pageviews table in DuckLake, where they query a catalog file through DuckDB. The pageviews table, [`wiki.pageviews_hourly`](#land-three-hours), has lived in Apache Iceberg since chapter 1. Another team keeps its tables in Delta Lake and wants the same rows in Iceberg. In both moves the source stays where it is, and the move is a copy into a new table. A copy is a one-time write, and most of the work is in the checks around it. The chapter makes both copies, then adds the checks that catch silent losses.
 
-The examples in this chapter pin {{version:pyiceberg}} for pyiceberg, {{version:deltalake}} for deltalake and {{version:duckdb}} for DuckDB, which also runs DuckLake. Each copy example builds its own small source in a temporary warehouse, from the same three hours of the pageviews cut. That is {{out:iceberg-to-ducklake-copy:source rows}} rows. Each example runs alone, so none depends on the state that an earlier chapter left behind.
+The examples in this chapter pin {{version:pyiceberg}} for pyiceberg, {{version:deltalake}} for deltalake and {{version:duckdb}} for DuckDB, which also runs DuckLake. Each copy example builds its own small source in a temporary warehouse, from the same three hours of the pageviews cut. That is {{out:iceberg-to-ducklake-copy:source rows}} rows.
 
 ## What a copy keeps and loses {#what-a-copy-keeps-and-loses}
 
@@ -34,7 +34,7 @@ The rows survive because the copy moves values, not files. A copy does not move 
 
 ## Copy the pageviews table into DuckLake {#iceberg-to-ducklake}
 
-The copy reads the Iceberg table as an Arrow table with `scan_arrow`, a shared helper that calls pyiceberg's `scan().to_arrow()`, then gives those rows to DuckLake. DuckLake creates an empty table with their columns, sets the partition spec on it, and then inserts the rows with `INSERT ... SELECT`. Arrow is the bridge because each side keeps its own library. pyiceberg reads the source, and DuckDB writes the DuckLake table through its own `ducklake` extension. Neither side reads the other's files. The [catalog chapter](#attach-ducklake-catalog) showed how the DuckLake catalog is attached, and the helper in this chapter attaches it the same way.
+The copy reads the Iceberg table with `scan_arrow`, then gives those rows to DuckLake. DuckLake creates an empty table with their columns, sets the partition spec on it, and then inserts the rows with `INSERT ... SELECT`. Arrow is the bridge because each side keeps its own library. pyiceberg reads the source, and DuckDB writes the DuckLake table through its own `ducklake` extension. Neither side reads the other's files. The [catalog chapter](#attach-ducklake-catalog) showed how the DuckLake catalog is attached, and the helper in this chapter attaches it the same way.
 
 The source is partitioned by the hour of `hour_utc`, which is the layout that [moving from daily to hourly partitions](#daily-to-hourly-partitions) arrives at. Here pyiceberg builds that source with the hourly spec, then appends three hours, one commit each:
 
@@ -52,7 +52,7 @@ A copy can lose its layout without any error, so the order of the statements mat
 
 The partition list reads the catalog table `ducklake_partition_column`, as the [DuckLake specification](https://ducklake.select/docs/stable/specification/tables/ducklake_partition_column) defines it, through the attached metadata database. No public function returns it at this pin.
 
-Last, the snapshot list shows the copy's history. Each line gives a snapshot's number and the changes it made. The numbers count from 1 over every snapshot DuckLake records, including the setup ones, so label N is DuckLake's own snapshot number N−1, because DuckLake counts from 0. The first two snapshots create the default schema and the `wiki` schema. The third creates the empty table, the fourth sets its partition spec, and the fifth writes the rows into the table that is already partitioned. The three hourly appends from the source do not appear. The copy's history starts at its own creation, so time travel on the copy reaches back only that far. To read the source as it was after the first hour, you still need the Iceberg table.
+Last, the snapshot list shows the copy's history. Each line gives a snapshot's number and the changes it made. The labels count every snapshot DuckLake records, setup included, as in [chapter 2](#snapshot-decisions). The first two snapshots create the default schema and the `wiki` schema. The third creates the empty table, the fourth sets its partition spec, and the fifth writes the rows into the table that is already partitioned. The three hourly appends from the source do not appear. The copy's history starts at its own creation, so time travel on the copy reaches back only that far. To read the source as it was after the first hour, you still need the Iceberg table.
 
 The attach helper also sets `DATA_INLINING_ROW_LIMIT` to 0, so the copied rows are written as Parquet files, and the counts above are of those files.
 
@@ -60,7 +60,7 @@ The attach helper also sets `DATA_INLINING_ROW_LIMIT` to 0, so the copied rows a
 
 ## Copy the Delta table into a pyiceberg table {#delta-to-iceberg}
 
-The Delta source is built the way a team's pipeline would build it: three appends with deltalake, one per hour. Delta counts its versions from 0, so the three appends are versions 0, 1 and 2. The copy reads the current rows with `read_delta`, a shared helper that goes through deltalake's `QueryBuilder`, and appends them to an Iceberg table made with the target schema:
+The Delta source is built the way a team's pipeline would build it: three appends with deltalake, one per hour. The three appends are versions 0, 1 and 2. The copy reads the current rows with `read_delta` and appends them to an Iceberg table made with the target schema:
 
 [Example: delta-to-iceberg-copy](../examples/delta-to-iceberg-copy.py)
 
@@ -118,7 +118,7 @@ Also choose the moment of the check. A digest is true for the rows that existed 
 
 ## What goes wrong in production {#migration-production-failures}
 
-Most failed migrations pass the first check and fail later. These are the failures to look for, and how you would notice each.
+A failed migration usually passes the first check and fails later. These are the failures to look for, and how you would notice each.
 
 - **A cutover that races a writer.** A digest covers only the rows it read, as the [digest section](#check-copy-with-digest) says. The first append after it makes the copy stale, and the digest does not warn you. Stop the writers, copy, digest and then move the readers. If the writers cannot stop, copy in windows and check the rows that arrived after the last window.
 - **Deleting the source before the checks pass.** The source holds the history that the copy does not. Once the source is gone, time travel into its snapshots and versions goes with it. Keep the source until the digests match and every reader has moved. Then decide how long to keep it, in writing.
@@ -132,7 +132,7 @@ Most failed migrations pass the first check and fail later. These are the failur
 ## Decisions this chapter made {#migration-decisions}
 
 - **Copies go through Arrow, and each target is written by the library that owns its format.** pyiceberg writes Iceberg, DuckDB's `ducklake` extension writes DuckLake, and deltalake writes Delta Lake. This book does not use DuckDB's `iceberg` or `delta` extensions, so no copy in it depends on them.
-- **Delta tables are read through `read_delta`,** which uses deltalake's `QueryBuilder`. Every read of a Delta table in this chapter takes that path.
+- **Delta tables are read through `read_delta`,** for the reason in [chapter 8](#catalog-decisions). Every Delta read in this chapter goes through it.
 - **A copy is one-time, starts a new history and is checked before anyone switches to it.** The source stays in place until the digests match and the readers have moved.
 - **The partition spec is set on the target by hand, with an `ALTER` before the rows are inserted, and printed.** The copy does not bring it across.
 - **Each copy example builds its own source from the same three hours of the cut.** Every example runs alone, and each check reads only the rows that its own example wrote.

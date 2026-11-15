@@ -49,7 +49,7 @@ Delta Lake, at deltalake {{version:deltalake}}, adds a column through its `alter
 DeltaTable(path).alter.add_columns([Field("load_batch", PrimitiveType("integer"))])
 ```
 
-The Delta half follows the same sequence: three early hours as three appends, the add, then hours 03 to 05. Delta counts versions from 0, so the first write is version 0, and every version number this chapter prints is Delta's real one. The version moves from {{out:add-column-to-existing-files:delta version before the add}} to {{out:add-column-to-existing-files:delta version after the add}}, and the table keeps its {{out:add-column-to-existing-files:delta data files before the add}} data files.
+The Delta half follows the same sequence: three early hours as three appends, the add, then hours 03 to 05. The first write is version 0, and every version number this chapter prints is Delta's real one. The version moves from {{out:add-column-to-existing-files:delta version before the add}} to {{out:add-column-to-existing-files:delta version after the add}}, and the table keeps its {{out:add-column-to-existing-files:delta data files before the add}} data files.
 
 Before the add there are {{out:add-column-to-existing-files:delta rows written before the add}} rows, all null for `load_batch`. Once the three later appends are in, the table has {{out:add-column-to-existing-files:delta rows in the table}} rows, and {{out:add-column-to-existing-files:delta rows written after the add with load_batch null}} of the {{out:add-column-to-existing-files:delta rows written after the add}} rows written after the add are null. This table has no column mapping, a point [the Delta Lake rename section](#rename-in-delta-lake) returns to.
 
@@ -118,7 +118,7 @@ The rewrite costs the size of the table, because every row is read and written a
 
 ## What goes wrong in production {#schema-production-failures}
 
-Schema changes fail quietly more often than they fail loudly. Four failures in this chapter are worth knowing, and each one has a way to notice it.
+Schema changes fail quietly more often than they fail loudly, and each failure below has a sign you can watch for.
 
 Start with the no-op rename. A `set_column_metadata` call succeeds, a commit appears in the history, and the column keeps its old name. The failure shows on the first query that uses `article_title`: the DuckDB query fails with a `BinderException`. A scheduled job that runs such a query fails on its first run after the change, so the error arrives close to its cause.
 
