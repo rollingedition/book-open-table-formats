@@ -4,7 +4,7 @@ from deltalake import DeltaTable, write_deltalake
 
 from lib.lakehouse import new_warehouse, read_cut_hour, read_delta
 
-LOW_VIEWS = 180  # the threshold the deletes in this chapter use
+LOW_VIEWS = 180  # about one row in six of hour 00 falls below this
 
 
 def deletion_vector_files(path):
@@ -30,7 +30,7 @@ def main():
         before = read_delta(str(path)).num_rows
         metrics = table.delete(f"views < {LOW_VIEWS}")
         print("rows deleted:", before - read_delta(str(path)).num_rows)
-        # the files this delete removed, which are the ones it rewrote
+        # the delete's num_removed_files metric, which counts the data files it replaced
         print("data files rewritten:", metrics["num_removed_files"])
         print("rows through QueryBuilder:", read_delta(str(path)).num_rows)
         print("deletion vector files:", deletion_vector_files(path))

@@ -4,7 +4,7 @@ from pyiceberg.expressions import LessThan
 
 from lib.lakehouse import create_iceberg_table, new_warehouse, read_cut_hour, scan_arrow
 
-LOW_VIEWS = 180  # the threshold the deletes in this chapter use
+LOW_VIEWS = 180  # about one row in six of hour 00 falls below this
 
 
 def main():

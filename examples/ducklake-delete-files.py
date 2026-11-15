@@ -2,8 +2,8 @@
 
 from lib.lakehouse import DUCKLAKE_ALIAS, NAMESPACE, TABLE, connect_ducklake, create_ducklake_table, new_warehouse, read_cut_hour
 
-LOW_VIEWS = 180  # the threshold the deletes in this chapter use
-VERY_LOW_VIEWS = 1000  # the second threshold, for the large delete
+LOW_VIEWS = 180  # few rows of hour 02 fall below this
+VERY_LOW_VIEWS = 1000  # most of the table's rows fall below this
 
 
 def delete_files(con):
@@ -23,7 +23,6 @@ def main():
             con.execute(f"INSERT INTO {table} SELECT * FROM hour")
             con.unregister("hour")
 
-        # hour 02 of the cut, in UTC, is the hour the small delete targets
         con.execute(f"DELETE FROM {table} WHERE hour_utc = TIMESTAMP '2024-06-03 02:00:00' AND views < {LOW_VIEWS}")
         print("rows left after the small delete:", con.execute(f"SELECT count(*) FROM {table}").fetchall()[0][0])
         print("delete files after the small delete:", delete_files(con))

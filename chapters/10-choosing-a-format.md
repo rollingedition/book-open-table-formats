@@ -8,7 +8,7 @@ Once you have read this chapter, you can list every tool that reads or writes yo
 
 Across chapters 1 to 9, one table, `wiki.pageviews_hourly`, went through its whole life in three formats: Apache Iceberg, Delta Lake and DuckLake. Each format did the same jobs in a different way, and each library supported a different subset of them. The choice you face is not which format is best in general. It is which format every tool in your team can open, change and clean up, at the versions you run. This chapter sets out how to measure that, shows the measurements for this book's pins, and gives a short guide for the choice.
 
-The table's readers are a dashboard that queries through DuckDB, a pipeline that appends through pyiceberg, and an archive job that reads a Delta Lake copy through deltalake. Each reader has its own pin, and each must open the data the others write. That is the situation the rest of this chapter prepares you for.
+The choice turns on readers, and the running case, `wiki.pageviews_hourly`, has three: a dashboard that queries through DuckDB, a pipeline that appends through pyiceberg, and an archive job that reads a Delta Lake copy through deltalake. Each reader has its own pin, and each must open the data the others write. That is the situation the rest of this chapter prepares you for.
 
 Three things make the choice harder than it looks. The features that differ most between formats, such as deletes, renames and partition changes, are the ones a team needs first. Each library changes on its own schedule, so a table one tool reads at one version may not open at another. And a check that passes on one machine says nothing about the versions your other tools run. The sections in this chapter deal with each of these in turn.
 
@@ -16,7 +16,7 @@ Three things make the choice harder than it looks. The features that differ most
 
 A format name does not tell you what a tool supports. Support belongs to a tool at one version: a writer can create a feature that a reader cannot open, and a vendor page describes the vendor's engine, not the library on your laptop. So start from the readers, not the format. Write down every tool that will read the table, with its version, and then test each feature you plan to use on each of those versions.
 
-Every measurement below takes the reader first, then the feature. The `iceberg-format-versions` example creates an Iceberg table in format version 2, deletes rows from it, and asks pyiceberg for format version 3. The `feature-check` example turns on deletion vectors in a Delta Lake table and reads it back. The `ducklake-catalog-version` example prints a DuckLake catalog's version, and the `ducklake-delete-files` and `ducklake-inlined-delete` examples count delete files after a small and a large delete. Each prints one labelled line per result, so you can compare the output with the tables in [the support matrix](#support-matrix-as-of-pins) and with your own readers.
+Each measurement below starts from a reader and then tests one feature on it. pyiceberg gets a delete on a format version 2 table, and then a request for version 3 (`iceberg-format-versions`). deltalake gets deletion vectors, turned on and read back (`feature-check`). The `ducklake-catalog-version` example prints a DuckLake catalog's version, and the `ducklake-delete-files` and `ducklake-inlined-delete` examples count delete files after a small and a large delete. Every example prints one labelled line per result, so you can compare the output with the tables in [the support matrix](#support-matrix-as-of-pins) and with your own readers.
 
 The person who owns the table should run the measurements on the machines that run the readers, not on a developer's laptop with different versions. Keep the record in a small table with one row per reader. The columns are the reader, its pinned version, the features your tables need and the date you measured them. A feature with no measurement counts as unsupported, and that rule is the one that prevents most of the failures later in this chapter.
 
@@ -24,7 +24,7 @@ The person who owns the table should run the measurements on the machines that r
 | --- | --- | --- | --- |
 | pyiceberg | {{version:pyiceberg}} | Format version 2 writes, deletes | Date of your run |
 
-Read each printed line as a claim that holds at one version of one tool. A line that says a write was refused is as useful as one that says it worked, because the refusal tells you which format version to drop. An example that prints an error prints its class, not its message, so rewording the error leaves the output unchanged.
+Read each printed line as a claim that holds at one version of one tool. A line that says a write was refused is as useful as one that says it worked, because the refusal tells you which format version to drop. An example that catches an error names its class, not its message, so the output stays the same when a library rewords the error.
 
 **Working rule:** Measure each reader on its own pinned version before you choose a format version or a feature. Write each result down with the version it was measured at. Run the measurement again whenever any reader's version changes, and do not reuse a support table from a vendor page.
 
@@ -77,11 +77,9 @@ The version 3 section of the Iceberg specification makes binary deletion vectors
 
 [Example: iceberg-format-versions](../examples/iceberg-format-versions.py)
 
-pyiceberg at this pin writes format version {{out:iceberg-format-versions:format version}}. Asked for format version 3, it raises `{{out:iceberg-format-versions:format version 3 create}}`, so none of the version 3 features is available from this writer.
+pyiceberg at this pin writes format version 2. The example asks for version 2 and prints the version of its table, which is {{out:iceberg-format-versions:format version}}. A request for format version 3 raises `{{out:iceberg-format-versions:format version 3 create}}`, so none of the version 3 features is available from this writer.
 
-A delete at this pin writes no delete file. The table lost {{out:iceberg-format-versions:rows deleted}} rows and holds {{out:iceberg-format-versions:delete files after the delete}} delete files, and its two snapshots are an `{{out:iceberg-format-versions:snapshot 1 operation}}` and, for the delete, an `{{out:iceberg-format-versions:snapshot 2 operation}}`.
-
-pyiceberg deletes by rewriting the data files it touches at these pins, although format version 2 also allows delete files ([chapter 5](#copy-on-write-and-merge-on-read)). Measure that rewrite on a copy of your own table before you choose.
+pyiceberg deletes by rewriting the data files it touches at these pins, although format version 2 also allows delete files ([chapter 5](#copy-on-write-and-merge-on-read)). The table lost {{out:iceberg-format-versions:rows deleted}} rows and holds {{out:iceberg-format-versions:delete files after the delete}} delete files. Its two snapshots are an `{{out:iceberg-format-versions:snapshot 1 operation}}` and, for the delete, an `{{out:iceberg-format-versions:snapshot 2 operation}}`. Measure that rewrite on a copy of your own table before you choose.
 
 | Feature | Iceberg v3 specification | pyiceberg at these pins |
 | --- | --- | --- |
@@ -97,9 +95,9 @@ The Delta Lake protocol, at the release tag its link names, says a table with de
 
 [Example: feature-check](../examples/feature-check.py)
 
-Turning the setting on changes what readers must support. The example enables it on a table of pageviews and prints what the table declares: the minimum reader version is {{out:feature-check:minimum reader version}}, the minimum writer version is {{out:feature-check:minimum writer version}}, and the reader features are `{{out:feature-check:reader features}}`. Only the deletion vector setting was set, so the library added the other two features on its own.
+Turning the setting on changes what readers must support. Once it is on, the table declares minimum reader version {{out:feature-check:minimum reader version}} and minimum writer version {{out:feature-check:minimum writer version}}. Its reader features are `{{out:feature-check:reader features}}`, and a reader must implement every one of them. We set only the deletion vector setting, so deltalake added the other two features on its own.
 
-At this pin deltalake declares the feature but still deletes by rewriting the file. The delete of rows below 180 views removed {{out:feature-check:rows deleted}} rows and rewrote {{out:feature-check:data files rewritten}} data file, and the table holds {{out:feature-check:deletion vector files}} deletion vector files. `QueryBuilder` reads {{out:feature-check:rows through QueryBuilder}} rows afterward. The setting changes the protocol that readers must support, not the way deletes write. The book reads Delta tables only through `QueryBuilder`, as [chapter 8](#find-delta-by-path) shows.
+At this pin deltalake declares the feature but still deletes by rewriting the file. The delete of rows below 180 views removed {{out:feature-check:rows deleted}} rows and rewrote {{out:feature-check:data files rewritten}} data file, and the table holds {{out:feature-check:deletion vector files}} deletion vector files. `QueryBuilder` reads {{out:feature-check:rows through QueryBuilder}} rows afterward. The book reads Delta tables only through `QueryBuilder`, as [chapter 8](#find-delta-by-path) shows.
 
 Every feature in the list matters, not only the deletion vector. A reader that lacks `timestampNtz` or `variantType` has the same problem as one that lacks `deletionVectors`. Compare the printed feature lists with each reader's own list after every change.
 
@@ -136,7 +134,7 @@ Use this guide after you have measured your readers. The first column is the sit
 | Delta tables already exist and deltalake reads them | Keep Delta Lake, with no rename promise | Change partitions by overwrite, and read back after each change |
 | You want DuckDB to change a Delta table | Not at these pins | DuckDB can only append; use deltalake for updates and deletes |
 
-DuckDB's `delta` extension can write Delta Lake tables. The DuckDB documentation for the pinned release, {{version:duckdb}}, says it can create tables and append to them, and it lists `UPDATE`, `DELETE`, `MERGE INTO`, `ALTER TABLE` and `DROP TABLE` as not supported ([DuckDB delta docs, Limitations](https://duckdb.org/docs/2.0/core_extensions/delta.html)). No example in this book runs the extension. Each one installs nothing at run time and uses its format's own library, so the reader sees the same library that writes the table, and nothing downloads while an example runs.
+DuckDB's `delta` extension can write Delta Lake tables. The DuckDB documentation for the pinned release, {{version:duckdb}}, says it can create tables and append to them, and it lists `UPDATE`, `DELETE`, `MERGE INTO`, `ALTER TABLE` and `DROP TABLE` as not supported ([DuckDB delta docs, Limitations](https://duckdb.org/docs/2.0/core_extensions/delta.html)). No example in this book runs the extension. The examples install nothing at run time and use each format's own library, so the reader sees the same library that writes the table, and nothing downloads while an example runs.
 
 Read the table row by row. When two rows point in different directions, the readers decide. First choose the format that every reader in your measured set opens, then choose features that every reader supports.
 
@@ -180,4 +178,3 @@ Most format failures in a shared lakehouse come from a tool the writer did not t
 - We chose a measured matrix over a vendor's support page, because the pinned versions decide what opens.
 - The default of Iceberg format version 2 is a judgement, labelled as one. The measurements behind it are the examples, and they are the part to re-run.
 - The book runs no DuckDB `delta` or `iceberg` extension. Its examples install nothing at run time and use each format's own library. The DuckDB `delta` extension can write Delta Lake tables, as its documentation describes.
-- A format is only as open as its least-tested reader, so the measurements come before the choice.
