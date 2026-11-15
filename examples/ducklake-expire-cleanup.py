@@ -25,7 +25,7 @@ with new_warehouse() as wh:
     create_ducklake_table(con, wh.root)
     load_ducklake_with_correction(con)  # lib inserts hours 00 to 02, deletes hour 02, then inserts the corrected hour 02
 
-    # ORDER BY 1 sorts by snapshot_id, which grows with each commit; DuckLake counts from 0, so label N is snapshot N-1
+    # ORDER BY 1 sorts by snapshot_id, which grows with each commit, so the labels number the snapshots in commit order
     ids = [r[0] for r in con.execute(f"SELECT snapshot_id FROM ducklake_snapshots('{DUCKLAKE_ALIAS}') ORDER BY 1").fetchall()]
     labels = version_labels(ids, word="snapshot")
     print("snapshots before expiry:", len(ids))
