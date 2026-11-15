@@ -1,4 +1,4 @@
-"""Delete the hour 02 rows under 180 views from an Iceberg table, a Delta Lake copy and DuckLake, and count what each format rewrote. The point rests on the data-file lines, which differ by format, and on the deleted-row lines beside them."""
+"""Delete the hour 02 rows under 180 views from an Iceberg table, a Delta Lake copy and DuckLake, and count what each format rewrote. The point rests on the data-file lines and on the deleted-row lines beside them."""
 
 from datetime import datetime
 

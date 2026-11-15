@@ -1,6 +1,6 @@
 """Count the files an Iceberg scan plans for one hour, for another hour and for the whole table, before and after a spec change.
 
-The point rests on the four filtered counts, which show each filter reaching the files of its own hour in either era.
+The filtered counts are the lines to compare, one pair for each filter.
 """
 
 from pyiceberg.partitioning import PartitionField, PartitionSpec
@@ -11,11 +11,10 @@ from lib.lakehouse import create_iceberg_table, hour_filter, new_warehouse, read
 
 def plan_counts(table):
     """Return the files planned for hour 01, for hour 04 and for no filter, in that order."""
-    # plan_files lists the files a scan would open; it does not read their rows
+    # plan_files gives the planned files as a list; each printed count is that list's length
     one_hour = len(table.scan(row_filter=hour_filter(1)).plan_files())
     # hour 04 is loaded only after the change, so the filter can match only an hour-partitioned file
     hour_four = len(table.scan(row_filter=hour_filter(4)).plan_files())
-    # no row filter, so the planner skips nothing: the full scan
     everything = len(table.scan().plan_files())
     return one_hour, hour_four, everything
 

@@ -16,16 +16,16 @@ def main():
         version_before = table.version()  # the version the read at the end goes back to
         print(f"files before compaction: {delta_file_count(table)}")  # counts the files this version lists, not the disk
 
-        metrics = table.optimize.compact()  # the library's metrics dictionary; its size fields are not printed
+        metrics = table.optimize.compact()  # a dict; numFilesAdded and numFilesRemoved are the two counts printed below
         print(f"files added by compaction: {metrics['numFilesAdded']}")
         print(f"files removed by compaction: {metrics['numFilesRemoved']}")
 
         table = DeltaTable(path)
         print(f"files after compaction: {delta_file_count(table)}")
         print(f"rows after compaction: {len(read_delta(path))}")
-        before = read_delta(path, version=version_before)  # the history keeps this version, and its old files
+        before = read_delta(path, version=version_before)
         print(f"rows at the version before compaction: {len(before)}")
-        parquet = list((wh.root / "delta").rglob("*.parquet"))  # every file on disk, including ones no version lists
+        parquet = list((wh.root / "delta").rglob("*.parquet"))  # every file on disk, including ones the current version dropped
         print(f"parquet files on disk after compaction: {len(parquet)}")
 
 

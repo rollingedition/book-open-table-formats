@@ -1,6 +1,6 @@
 """Change a Delta Lake table's partition columns from day to hour, which rewrites the table.
 
-The point rests on the error line from the plain overwrite, and on the version and row lines after the rewrite.
+Read the error line from the plain overwrite first, then the version and row lines after the rewrite.
 """
 
 import pyarrow.compute as pc
@@ -27,10 +27,10 @@ def main():
             print(f"version before: {table.version()}")
             print(f"data files before: {delta_file_count(table)}")
 
-            # read first: the overwrite replaces every row the table holds, and these rows are written back
+            # read first, so the rows are in memory before the overwrite below writes them back
             rows = read_delta(path)
             try:
-                # expected to fail: the table is partitioned by day, and the partition change needs a schema overwrite
+                # no schema_mode here, so the library refuses the change and the error is printed
                 write_deltalake(path, rows, partition_by=["hour"], mode="overwrite")
             except Exception as exc:
                 print(f"change without schema mode: {safe_error(exc, wh)}")

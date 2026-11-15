@@ -19,7 +19,7 @@ def main():
         last_append = table.current_snapshot().snapshot_id  # the snapshot after the sixth append
         print(f"data files before rewrite: {iceberg_file_count(table)}")
 
-        # the scan is read as a stream of record batches, not as one Arrow table
+        # a batch reader, so the rows are not all read into one Arrow table first
         table.overwrite(table.scan().to_arrow_batch_reader())
         print(f"data files after rewrite: {iceberg_file_count(table)}")
         print(f"rows after rewrite: {len(scan_arrow(table))}")

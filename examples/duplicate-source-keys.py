@@ -1,4 +1,4 @@
-"""Show what an upsert or a MERGE does when the batch has two rows for one key."""
+"""Send a batch that holds one key twice to an Iceberg upsert and to a DuckLake MERGE, and print each refusal with the row count after it. The point rests on the two error lines, which name the cause, and on the counts that follow them."""
 
 import pyarrow as pa
 
@@ -19,15 +19,15 @@ def main():
         iceberg, _, lake = load_three_formats(wh, range(6))
         corrected = hour_corrections(read_cut_hour(2))
         # A corrected row, sent twice: the batch holds two rows with one key.
-        before = read_cut_hour(2)["views"].to_pylist()
+        before = read_cut_hour(2)["views"].to_pylist()  # the cut's views, to find the rows the correction changed
         changed = [i for i, after in enumerate(corrected["views"].to_pylist()) if after != before[i]]
-        doubled = pa.concat_tables([corrected, corrected.slice(changed[0], 1)])
+        doubled = pa.concat_tables([corrected, corrected.slice(changed[0], 1)])  # the first changed row, appended again
 
         try:
             iceberg.upsert(doubled, join_cols=list(KEY))
             print("Iceberg upsert: no error")
         except Exception as exc:
-            print("Iceberg upsert:", safe_error(exc, wh))
+            print("Iceberg upsert:", safe_error(exc, wh))  # safe_error replaces the warehouse path, so no local path is printed
         print("Iceberg rows after the failed upsert:", scan_arrow(iceberg).num_rows)
 
         lake.register("batch", doubled)

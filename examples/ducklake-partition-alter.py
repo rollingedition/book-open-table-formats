@@ -1,6 +1,6 @@
 """Set a DuckLake table's partitioning to hour, then load one more hour and count the files before and after it.
 
-The point rests on the file counts and the files-kept line, which show the earlier files still listed after the hour load.
+The files-kept line is the one to check: it counts the earlier files still listed after the hour load.
 """
 
 from lib.lakehouse import (DUCKLAKE_ALIAS, NAMESPACE, TABLE, connect_ducklake, create_ducklake_table, ducklake_file_count,
@@ -28,7 +28,7 @@ def main():
             load(con, 3)  # hour 03, the first load after the change
             print(f"data files after one load under hour: {ducklake_file_count(con, DUCKLAKE_ALIAS, TABLE)}")
             after = ducklake_file_paths(con, DUCKLAKE_ALIAS, TABLE)
-            # a file path listed both before and after the hour load was not rewritten by it
+            # the intersection is the earlier files still listed after the hour load
             print(f"files kept from before the change: {len(before & after)}")
 
             # ordered by key index, so the keys print in a fixed order
