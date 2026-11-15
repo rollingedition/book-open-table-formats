@@ -26,7 +26,7 @@ with new_warehouse() as wh:
     same.register_table("archive.pageviews_copy", table.metadata_location)
     print("rows in archive copy:", scan_arrow(same.load_table("archive.pageviews_copy")).num_rows)
 
-    # An object with another name does not see the namespace: the SQL catalog keeps tables apart by name.
+    # An object with another name does not see the namespace: the SQL catalog keeps tables apart by catalog name.
     try:
         open_catalog(wh, name="other").list_tables(NAMESPACE)
     except Exception as exc:

@@ -12,7 +12,7 @@ with new_warehouse() as wh:
     for hour in (0, 1, 2):
         write_deltalake(path, read_cut_hour(hour), mode="append")
     dt = DeltaTable(path)
-    dt.delete("hour_utc = '2024-06-03T02:00:00'")  # hour 02 by its timestamp, the hour hour_filter(2) selects in Iceberg
+    dt.delete("hour_utc = '2024-06-03T02:00:00'")  # hour 02, matched by its exact timestamp
     # hour_corrections halves the views of some page titles in hour 02, so this append holds the corrected rows
     write_deltalake(path, hour_corrections(read_cut_hour(2)), mode="append")
 

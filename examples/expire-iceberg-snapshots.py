@@ -16,7 +16,7 @@ from lib.lakehouse import (
 
 def referenced_files(table):
     """Distinct data files that some retained snapshot lists. Count them; do not print them."""
-    # all_files() repeats a file once for each snapshot that lists it, so the set counts each file once
+    # all_files() can list one file from several manifests, so the set counts each file once
     return len(set(table.inspect.all_files()["file_path"].to_pylist()))
 
 

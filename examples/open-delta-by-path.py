@@ -13,7 +13,7 @@ with new_warehouse() as wh:
     table = DeltaTable(path)
     print("delta version:", table.version())
     print("rows at that version:", read_delta(path).num_rows)
-    print("rows at version 0:", read_delta(path, version=0).num_rows)   # version 0 is the first append alone
+    print("rows at version 0:", read_delta(path, version=0).num_rows)
 
     # The path is the only name a Delta table has here: a wrong path is a missing table.
     try:
