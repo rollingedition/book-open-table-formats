@@ -1,11 +1,14 @@
-"""Run cleanup_all against a fresh, empty DuckLake catalog that shares a data path with a live one."""
+"""Run cleanup_all against a fresh, empty DuckLake catalog that shares a data folder with a live one. The point rests
+on the 'parquet files after cleanup_all' line and the 'reading the live catalog' line."""
 
 from lib.lakehouse import (DUCKLAKE_ALIAS, NAMESPACE, connect_ducklake, create_ducklake_domains,
                            new_warehouse, sql_rows)
 
+# One statement, run twice: first with dry_run => true, then for real. {dry} holds the dry-run argument or nothing.
 CLEANUP = "CALL ducklake_delete_orphaned_files('fresh', cleanup_all => true{dry})"
 
 def parquet_count(root):
+    # the data folder that attach_ducklake gives the catalog with the live alias; rglob searches it at any depth
     return len(list((root / f"{DUCKLAKE_ALIAS}_data").rglob("*.parquet")))
 
 with new_warehouse() as wh:

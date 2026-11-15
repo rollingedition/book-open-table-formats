@@ -1,6 +1,6 @@
 """Change a Delta Lake table's partition columns from day to hour, which rewrites the table.
 
-The table holds three hourly loads with day and hour as plain columns. Delta numbers versions from 0.
+Read the error line from the plain overwrite first, then the version and row lines after the rewrite.
 """
 
 import pyarrow.compute as pc
@@ -12,6 +12,7 @@ from lib.lakehouse import delta_file_count, new_warehouse, read_cut_hour, read_d
 def with_partition_columns(rows):
     """Add the day and hour columns that Delta partitions by. Delta partitions only by plain columns."""
     rows = rows.append_column("day", pc.strftime(rows["hour_utc"], format="%Y-%m-%d"))
+    # %H is the 24-hour clock, zero-padded, so hour 04 is the string "04"
     return rows.append_column("hour", pc.strftime(rows["hour_utc"], format="%H"))
 
 
@@ -26,12 +27,15 @@ def main():
             print(f"version before: {table.version()}")
             print(f"data files before: {delta_file_count(table)}")
 
+            # read first, so the rows are in memory before the overwrite below writes them back
             rows = read_delta(path)
             try:
+                # no schema_mode here, so the library refuses the change and the error is printed
                 write_deltalake(path, rows, partition_by=["hour"], mode="overwrite")
             except Exception as exc:
                 print(f"change without schema mode: {safe_error(exc, wh)}")
 
+            # schema_mode is what lets the partition columns change in a full overwrite
             write_deltalake(path, rows, partition_by=["hour"], mode="overwrite", schema_mode="overwrite")
             table = DeltaTable(path)
             print(f"partition columns after: {table.metadata().partition_columns}")
@@ -39,6 +43,7 @@ def main():
             print(f"data files after: {delta_file_count(table)}")
             print(f"rows after: {read_delta(path).num_rows}")
 
+            # version 2 is the last version before the rewrite; Delta counts versions from 0
             old = DeltaTable(path, version=2)
             print(f"partition columns in version 2: {old.metadata().partition_columns}")
             print(f"rows in version 2: {read_delta(path, version=2).num_rows}")

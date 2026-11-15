@@ -12,7 +12,7 @@ description: "Use when you create or append to an Iceberg (pyiceberg), Delta Lak
 4. Before each commit, write down the row count it should add. Compare that count with the one the commit reports. [Append each hour as a commit](#append-each-hour)
 5. Small DuckLake inserts stay in the catalog unless the row limit is 0. [What goes wrong in production](#first-table-production-failures)
 
-**Check:** Run [the example](examples/rough-lakehouse.py). The last check line should read totals match: {{out:rough-lakehouse:totals match}}.
+**Check:** Run [the example](examples/rough-lakehouse.py). It should finish without an assertion error: it asserts that the three formats' totals match.
 
 **Pitfalls:**
 - A repeated load adds the same rows again, and nothing in the table stops it. Count from the snapshot, not the folder. [What goes wrong in production](#first-table-production-failures)
@@ -155,7 +155,7 @@ description: "Use when you create or append to an Iceberg (pyiceberg), Delta Lak
 4. For an Iceberg target, write the target schema yourself, and print both schemas after the copy. [Copy the Delta table into a pyiceberg table](#delta-to-iceberg)
 5. After the last write to the source, compare the row counts and a digest of typed values over the same columns, on both sides. Keep the source until both match. [Check each copy with a sorted digest](#check-copy-with-digest)
 
-**Check:** Run [the example](examples/verify-copies-by-digest.py). The Iceberg-to-DuckLake digest should match: {{out:verify-copies-by-digest:iceberg to ducklake match}}.
+**Check:** Run [the example](examples/verify-copies-by-digest.py). The Iceberg-to-DuckLake digests should match: {{out:verify-copies-by-digest:iceberg to ducklake digests}}.
 
 **Pitfalls:**
 - A digest is true only for the rows that existed when it ran, so a later write makes the copy stale. Delta Lake cut nanosecond timestamps to microseconds with no error and no change in the row count, so check values, not only counts. [What goes wrong in production](#migration-production-failures)

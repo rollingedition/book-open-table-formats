@@ -1,4 +1,7 @@
-"""Check each copy with a sorted digest, and show that one changed value fails the check."""
+"""Check each copy against its source with a sorted digest, and show that one changed value fails it.
+
+The point rests on the two iceberg to ducklake digest lines: the copy matches its source, and a copy with one
+changed count does not."""
 
 from lib.lakehouse import (copy_to_ducklake, create_iceberg_table, digest_rows, new_warehouse, read_cut_hour,
                            read_delta, safe_error, scan_arrow, sql_rows, write_delta_hours)
@@ -17,10 +20,17 @@ def check_iceberg_to_ducklake():
         source_rows = sql_rows(wh.con, "SELECT * FROM source", source=scan_arrow(table))
         copy_rows = wh.con.execute(f"SELECT * FROM {target}").fetchall()
         first = copy_rows[0]
+        # the copy's columns are hour_utc, domain_code, page_title, views, response_bytes, so index 3 is views
         changed = [(*first[:3], first[3] + 1, first[4]), *copy_rows[1:]]
         print(f"iceberg to ducklake rows: {len(source_rows)} and {len(copy_rows)}")
-        print(f"iceberg to ducklake match: {same(source_rows, copy_rows)}")
-        print(f"iceberg to ducklake with one changed view count match: {same(source_rows, changed)}")
+        matches = same(source_rows, copy_rows)
+        # printed before the assert, so a failing run still shows the word
+        print(f"iceberg to ducklake digests: {'match' if matches else 'differ'}")
+        assert matches
+        still_matches = same(source_rows, changed)
+        print(f"iceberg to ducklake with one changed view count digests: {'match' if still_matches else 'differ'}")
+        # one changed count must change the digest
+        assert not still_matches
 
 
 def check_delta_to_iceberg():

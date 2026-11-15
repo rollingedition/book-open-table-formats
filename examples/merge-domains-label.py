@@ -1,4 +1,4 @@
-"""MERGE a changed language label into the domains table in DuckLake, then run the same MERGE again."""
+"""Merges one changed language label into the DuckLake copy of the domains table, then runs the same MERGE again. Read the second changed-row line against the sorted table, which shows the label that merged in."""
 
 import pyarrow as pa
 
@@ -16,16 +16,17 @@ WHEN NOT MATCHED THEN INSERT (domain_code, language) VALUES (s.domain_code, s.la
 def main():
     with new_warehouse() as wh:
         lake = connect_ducklake(wh.con)
-        attach_ducklake(lake, "lake", wh.root, inlining_row_limit=0)
+        attach_ducklake(lake, "lake", wh.root, inlining_row_limit=0)  # inlining off, so the rows land in data files
         lake.execute("CREATE SCHEMA lake.wiki")
         lake.execute("CREATE TABLE lake.wiki.domains (domain_code VARCHAR, language VARCHAR)")
         lake.register("dims", read_domains())
         lake.execute("INSERT INTO lake.wiki.domains SELECT * FROM dims")
 
+        # 'fr' is already in the table, so this label is an update and not an insert
         lake.register("labels", pa.table({"domain_code": ["fr"], "language": ["French (France)"]}))
         print("rows changed by the merge:", lake.execute(MERGE).fetchall()[0][0])
         print("rows changed by the same merge again:", lake.execute(MERGE).fetchall()[0][0])
-        print_rows(lake.execute("SELECT domain_code, language FROM lake.wiki.domains").fetchall())
+        print_rows(lake.execute("SELECT domain_code, language FROM lake.wiki.domains").fetchall())  # sorted, so the order DuckLake returns rows in does not matter
 
 
 if __name__ == "__main__":

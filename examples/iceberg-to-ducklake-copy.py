@@ -1,4 +1,7 @@
-"""Copy an Iceberg table into DuckLake through Arrow, partitioned from the start, then check its layout and history."""
+"""Copy an Iceberg table into DuckLake through Arrow, then print what the copy kept of the layout and the history.
+
+The point rests on the copy partition transforms and copy files per partition lines, which show whether the
+layout arrived with the rows, and on the copy snapshot lines, which show the history starting at the copy."""
 
 from pyiceberg.partitioning import PartitionField, PartitionSpec
 from pyiceberg.transforms import HourTransform
@@ -10,6 +13,7 @@ from lib.lakehouse import (copy_to_ducklake, create_iceberg_table, ducklake_file
 def main():
     try:
         with new_warehouse() as wh:
+            # source_id 1 is the field ID of hour_utc in the table lib creates
             spec = PartitionSpec(PartitionField(source_id=1, field_id=1000, transform=HourTransform(), name="ts_hour"))
             table = create_iceberg_table(wh, partition_spec=spec)
             for hour in range(3):
@@ -20,14 +24,18 @@ def main():
             for field in table.spec().fields:
                 print(f"source partition field: {field.name}")
 
+            # the helper creates the copy empty, sets this spec with ALTER, and only then inserts the rows
             target = copy_to_ducklake(wh, arrow, partition_by="hour(hour_utc)")
             print(f"copy rows: {wh.con.execute(f'SELECT count(*) FROM {target}').fetchall()[0][0]}")
+            # current=True keeps only the spec still in force; an earlier spec would otherwise be listed too
             print(f"copy partition transforms: {ducklake_partition_transforms(wh.con, table=TABLE, current=True)}")
+            # one (partition value, files, rows) tuple per partition, in value order
             files = ducklake_files_by_partition(wh.con, "lake", TABLE)
             print(f"copy partition values: {[value for value, _, _ in files]}")
             print(f"copy files per partition: {[count for _, count, _ in files]}")
             print(f"copy rows per partition: {[int(rows) for _, _, rows in files]}")
             changes = wh.con.execute("SELECT changes FROM ducklake_snapshots('lake') ORDER BY snapshot_id").fetchall()
+            # labels start at 1, so label N is the snapshot whose snapshot_id is N-1
             for number, (change,) in enumerate(changes, start=1):
                 print(f"copy snapshot {number}: {', '.join(sorted(change))}")
     except Exception as exc:
