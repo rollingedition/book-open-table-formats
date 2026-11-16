@@ -152,16 +152,16 @@ The first chapter's path is short, and it hides four problems that you will meet
 
 **Snapshot IDs, versions and snapshot numbers are different kinds of number.** Iceberg IDs are 64-bit values. Delta Lake versions count from 0 in commit order. DuckLake numbers its snapshots as well, and it records a snapshot each time it creates a schema or a table, as well as each time it inserts rows. A script that stores one format's number and reads it as another format's version reads the wrong state.
 
-**A small DuckLake insert writes no file.** By default, DuckLake keeps inserts of 10 rows or fewer in its catalog, so a file count of zero after a small insert is the expected result, not a failure. This book's examples set the row limit to 0. A reader who copies an insert into their own catalog should know the default first.
+**A small DuckLake insert writes no file.** By default, DuckLake keeps inserts of 10 rows or fewer in its catalog, so a file count of zero after a small insert is the expected result, not a failure. This book's DuckLake examples set the row limit to 0, except [`ducklake-inlined-delete`](#matrix-changing-and-cleaning-up) in chapter 10, which keeps the default to show that a small delete writes no delete file. A reader who copies an insert into their own catalog should know the default first.
 
 **Working rule:** Write down the row count each commit should add, next to the load that makes it, and compare that count with the commit's summary after every load. The table does not check for a repeated load. A count you wrote down in advance is the check that does.
 
 ## Decisions this chapter made {#first-table-decisions}
 
 - **Three examples in this chapter.** `rough-lakehouse` does the whole result in three formats, so each later chapter changes one part of a result the reader has already run. The other two, `append-hours` and `scan-into-duckdb`, build the Iceberg table one commit at a time and read it in DuckDB.
-- **Hours 00 to 02 first, then 03 to 05.** The Iceberg examples land three hours and the rough example lands six. The totals in this chapter cover all six hours.
+- **Hours 00 to 02 first, then 03 to 05.** The Iceberg examples land three hours and the rough example lands six. Only `rough-lakehouse` totals all six hours.
 - **Unpartitioned tables.** Chapter 1 creates tables without a partition spec. Chapter 4 changes the partitioning. The pyiceberg-core package is pinned beside pyiceberg, because the day and hour transforms in chapter 4 need it.
-- **Inlining off in the examples.** DuckLake examples set `DATA_INLINING_ROW_LIMIT` to 0, so each insert writes a Parquet file and the file counts mean the same thing wherever the book prints them.
+- **Inlining off in the examples.** DuckLake examples set `DATA_INLINING_ROW_LIMIT` to 0, so each insert writes a Parquet file and the file counts mean the same thing wherever the book prints them. Chapter 10's `ducklake-inlined-delete` keeps the default, because its point is that a small delete then writes no delete file.
 - **Delta tables are read through deltalake's `QueryBuilder` only.** The reading helper in `examples/lib/lakehouse.py` takes that path, and each later chapter that reads a Delta table uses the same helper.
 - **Real data, not a stand-in.** Each example in this chapter reads the cut of the six public dumps that [the data README](../examples/data/README.md) describes. The book ships no generated data for this chapter.
 - **SQLite for the Iceberg catalog.** A SQLite file needs no server, so the Iceberg examples run on a laptop with the network off. Those runs also turn off DuckDB's automatic extension download, so a run that needs the network fails instead of fetching.

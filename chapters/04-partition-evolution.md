@@ -50,7 +50,7 @@ A mistake here shows up later, not in the change itself. If the spec list is wro
 
 ### Files written under each spec {#files-written-under-each-spec}
 
-Each data file belongs to the spec it was written under, so counting files by spec tells you which era each file is from. The listing of data files carries each file's spec ID, so the count can group the files by spec, one count per spec under the labels "spec 1" and "spec 2". The IDs stay out of the output, so it reads the same on every run.
+Each data file belongs to the spec it was written under, so counting files by spec tells you which era each file is from. The listing of data files carries each file's spec ID, so the count can group the files by spec, one count per spec under the labels "spec 1" and "spec 2". The labels number the specs in the order they were made, so the output names no spec ID.
 
 The three day-partitioned loads kept their files through the change. The output shows `{{out:day-then-hour-spec:spec 1 data files}}` data files under spec 1 and `{{out:day-then-hour-spec:spec 2 data files}}` under spec 2, so the three hour-partitioned loads wrote their own, and the spec change itself wrote nothing. If the count under spec 1 had dropped after the change, something would have rewritten those files, and you would need to find out what before you trusted the old era's data.
 
@@ -136,4 +136,4 @@ Last, a rewrite that runs against a table readers use. The Delta example in this
 - We choose the hour grain from the dashboards' filters, which read one hour at a time, and not from how often loads arrive.
 - We show the Delta failure first, then the fix, so the schema setting is explained by the error that asks for it.
 - We print the DuckLake partition key from the catalog's partition table, not from file names, so the output does not change when the file names do.
-- We keep the field and spec labels in the output and never print a spec ID, a snapshot ID or a file name, because each of those differs from one run to the next.
+- We keep the field and spec labels in the output and never print a spec ID, a snapshot ID or a file name. Snapshot IDs and file names differ from one run to the next, and a label says which era a spec belongs to without the reader decoding its ID.

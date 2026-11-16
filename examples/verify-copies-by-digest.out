@@ -2,4 +2,3 @@ iceberg to ducklake rows: 1499 and 1499
 iceberg to ducklake digests: match
 iceberg to ducklake with one changed view count digests: differ
 delta to iceberg rows: 1499 and 1499
-delta to iceberg match: True
