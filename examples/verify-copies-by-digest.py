@@ -41,7 +41,7 @@ def check_delta_to_iceberg():
         source_rows = sql_rows(wh.con, "SELECT * FROM source", source=read_delta(path))
         copy_rows = sql_rows(wh.con, "SELECT * FROM copy", copy=scan_arrow(table))
         print(f"delta to iceberg rows: {len(source_rows)} and {len(copy_rows)}")
-        print(f"delta to iceberg match: {same(source_rows, copy_rows)}")
+        assert same(source_rows, copy_rows)
 
 
 def main():
