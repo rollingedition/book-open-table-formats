@@ -8,7 +8,7 @@ abstract: How Iceberg, Delta Lake and DuckLake store a table, change it, clean i
 url: https://rollingedition.com/open-table-formats
 repository-code: https://github.com/rollingedition/book-open-table-formats
 license:
-- CC-BY-4.0
+- CC-BY-NC-4.0
 - MIT
 preferred-citation:
   type: book
