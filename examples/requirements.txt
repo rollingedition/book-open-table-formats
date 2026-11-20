@@ -25,7 +25,7 @@ pyroaring==1.2.0
 python-dateutil==4.0.0
 requests==2.34.2
 rich==15.0.0
-SQLAlchemy==2.1.8
+SQLAlchemy==2.1.9
 strictyaml==1.7.3
 tenacity==9.2.1
 typing-inspection==0.4.5
