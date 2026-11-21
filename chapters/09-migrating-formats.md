@@ -18,7 +18,7 @@ The losses are easiest to see as a table. Each row names a part of the table, wh
 
 | Part of the table | After the copy | Where this chapter shows it |
 | --- | --- | --- |
-| Rows and their values | Kept | The digest check |
+| Rows and their values | Kept | The [digest](#check-copy-with-digest) check |
 | Column names and types | Kept where both formats have the type | The Delta Lake section |
 | Commit history | Lost. The copy starts a history of its own | Both copy sections |
 | Partition spec | Lost unless it is set on the target | The DuckLake section |
@@ -40,7 +40,7 @@ The source is partitioned by the hour of `hour_utc`, which is the layout that [m
 
 [Example: iceberg-to-ducklake-copy](../examples/iceberg-to-ducklake-copy.py)
 
-The helper `scan_arrow` reads the source at its current snapshot and returns every row of that snapshot as one Arrow table. The copy therefore holds the rows of one moment, the last commit that the scan saw. Writers that commit after the scan are not in the copy, and nothing in the copy tells you so. That is the cutover problem, which the production section returns to.
+The helper `scan_arrow` reads the source at its current snapshot and returns every row of that snapshot as one Arrow table. The copy therefore holds the rows of one moment, the last commit that the scan saw. Writers that commit after the scan are not in the copy, and nothing in the copy tells you so. Commits that land after a copy's scan and never reach the copy are the cutover problem, which the production section returns to.
 
 Two questions decide the copy: did the rows and layout arrive, and what history came with them? The output answers both.
 
@@ -102,7 +102,7 @@ The pageviews table records hours, so the case never reaches the problem. A tabl
 
 ## Check each copy with a sorted digest {#check-copy-with-digest}
 
-A matching row count does not prove that the values match. A copy can keep the count and change one value, and the count will not show it. A digest does. `digest_rows` sorts the rows, writes each one out as a line of text and hashes the result. The sort makes the digest independent of the order in which the rows come back, so two copies with the same rows get the same digest, however each format returns them. `digest_rows` runs on both copies, and on a copy with one view count changed on purpose:
+A matching row count does not prove that the values match. A copy can keep the count and change one value, and the count will not show it. A digest does. The digest of a table is a hash of its sorted rows: `digest_rows` sorts the rows, writes each one out as a line of text and hashes the result. The sort makes the digest independent of the order in which the rows come back, so two copies with the same rows get the same digest, however each format returns them. `digest_rows` runs on both copies, and on a copy with one view count changed on purpose:
 
 [Example: verify-copies-by-digest](../examples/verify-copies-by-digest.py)
 
