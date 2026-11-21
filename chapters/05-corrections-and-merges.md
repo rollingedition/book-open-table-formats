@@ -12,7 +12,7 @@ So far the table only grows. Every write in [chapter 1](#append-each-hour) appen
 
 The first delivery of hour 02 reached the table in [chapter 1](#append-each-hour) with the counts the source sent at the time. A later delivery of the same hour carries corrected counts for some pages, and one page the first delivery left out. The pages in the correction are the same pages as before, so the table needs to change rows in place. Appending the corrected hour would store every page twice, once with each count.
 
-Here a row is identified by its key: `hour_utc`, `domain_code` and `page_title` together. A correction is a set of rows with keys, and for each key the table either already holds a row, which should change, or does not, which should be added. Writing a correction is therefore a question about keys, and the write answers it with one rule: a key must identify one row in the batch you write. pyiceberg and DuckLake both enforce that rule. This chapter does not test a repeated key in a deltalake merge.
+In this book, a row is identified by its key: `hour_utc`, `domain_code` and `page_title` together. A correction is a set of rows with keys, and for each key the table either already holds a row, which should change, or does not, which should be added. Writing a correction is therefore a question about keys, and the write answers it with one rule: a key must identify one row in the batch you write. pyiceberg and DuckLake both enforce that rule. This chapter does not test a repeated key in a deltalake merge.
 
 A correction usually arrives as the whole hour, re-delivered, and not as a few rows. Sending the whole hour keeps the batch self-contained, because the write decides row by row what changed. The cost is that every row of the hour is compared, not only the corrected ones. Because every row is compared, pyiceberg can count only the rows whose values differ, and a rerun of the same batch changes nothing.
 
@@ -60,7 +60,7 @@ Delta Lake also has deletion vectors, which record deleted row positions in a fi
 
 ## Upsert a corrected hour {#upsert-corrected-hour}
 
-An upsert updates the row whose key matches and inserts the row whose key does not. It is the right write for a correction, because the corrected hour holds the keys that the table already has, and the late row holds a key the table does not have yet. A plain append would store the corrected rows next to the originals, so every page in the hour would appear twice.
+An upsert updates the row whose [key](#late-data-as-correction) matches and inserts the row whose key does not. It is the right write for a correction, because the corrected hour holds the keys that the table already has, and the late row holds a key the table does not have yet. A plain append would store the corrected rows next to the originals, so every page in the hour would appear twice.
 
 The next two subsections show pyiceberg's method and DuckLake's SQL `MERGE` with the same batch.
 
@@ -86,7 +86,7 @@ Running the same upsert again changes nothing: it reports {{out:redeliver-hour-u
 
 ### MERGE in DuckLake {#merge-in-ducklake}
 
-DuckLake takes the same correction as a `MERGE` statement in SQL. The statement names the target table, the source batch and the key in its `ON` clause, and each `WHEN` clause says what to do with a matched or an unmatched row. The statement below is the one the example after it runs.
+DuckLake takes the same correction as a `MERGE` statement in SQL. A `MERGE` statement names the target table, the source batch and the key in its `ON` clause, and each `WHEN` clause says what to do with a matched or an unmatched row. The statement below is the one the example after it runs.
 
 ```sql
 MERGE INTO lake.wiki.pageviews_hourly AS t

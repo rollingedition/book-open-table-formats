@@ -4,7 +4,7 @@ chapter_id: compaction
 
 # Compact the small files that hourly appends leave
 
-This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a Parquet file that holds rows of the table.
+This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a Parquet file that holds rows of a table.
 
 ## Hourly appends leave small files {#hourly-appends-leave-small-files}
 
@@ -12,7 +12,7 @@ Every commit that appends rows writes at least one data file. A table that takes
 
 The count of files is the number to watch, because it grows with time. File size matters too, but this book prints no file sizes, since a size in bytes changes from one run to the next. Counting files is also the honest check on a compaction. The rows should be the same before and after, and the file count should drop.
 
-The fix is compaction: rewriting many small data files into fewer, larger ones. A compaction is a commit like any other. It writes the replacement files, lists them in the metadata, and leaves the old files on disk for as long as the table's history still refers to them. [Chapter 7](#expiry-and-cleanup) covers when those old files can go.
+The fix is compaction. Compaction rewrites many small data files into fewer, larger ones. A compaction is a commit like any other. It writes the replacement files, lists them in the metadata, and leaves the old files on disk for as long as the table's history still refers to them. [Chapter 7](#expiry-and-cleanup) covers when those old files can go.
 
 The three formats have three different calls for it. The table below shows what each one did to the six hourly files this chapter builds.
 
@@ -44,7 +44,7 @@ The compaction did not remove the old files. Read at the version from before the
 
 Delta reads here go through the library's query builder, as every Delta read in this book does. Since the point is the file count, the rows are compared by count alone.
 
-**Working rule:** Compact a Delta table on the schedule from the first section (daily for hourly loads), and check the file count afterwards. Read the retention rules in chapter 7 before you remove anything: a compaction adds a commit and leaves the old files in place, so it adds storage until the vacuum runs.
+**Working rule:** Compact a Delta table on the schedule from the first section (daily for hourly loads), and check the file count afterwards. Read the retention rules in chapter 7 before you remove anything: a compaction adds a commit and leaves the old files in place, so it adds storage until the [vacuum](#vacuum-in-delta-lake) runs.
 
 ## Compact in DuckLake {#compact-in-ducklake}
 
@@ -60,9 +60,9 @@ What does the merge leave for a snapshot from before it? The example below reads
 
 The merge's result row says what it did: {{out:compact-ducklake:files merged}} files merged into {{out:compact-ducklake:files created}} file. The table lists {{out:compact-ducklake:data files after merge}} data file afterwards, down from {{out:compact-ducklake:data files before merge}}. The row also names the schema and the table, so a merge aimed at the wrong table shows before anything else is read.
 
-The old snapshot still reads. A count taken at the snapshot before the merge returns {{out:compact-ducklake:rows at the snapshot before merge}} rows, the same count the current table returns. The Parquet files on disk number {{out:compact-ducklake:parquet files on disk after merge}}, the six the inserts wrote and the one the merge wrote. The six old files stay on disk until the cleanup in [chapter 7](#expiry-and-cleanup) removes them.
+The old snapshot still reads. A count taken at the snapshot before the merge returns {{out:compact-ducklake:rows at the snapshot before merge}} rows, the same count the current table returns. The Parquet files on disk number {{out:compact-ducklake:parquet files on disk after merge}}, the six the inserts wrote and the one the merge wrote. The six old files stay on disk until the [cleanup](#snapshots-keep-files-alive) in chapter 7 removes them.
 
-The merge skips a file that has a delete file attached. A delete file is a record of deleted rows, which DuckLake writes instead of rewriting the data file when rows are deleted. [Chapter 5](#corrections-and-merges) writes delete files in DuckLake, so this limit applies there. The DuckLake documentation names `ducklake_rewrite_data_files` as the call that rewrites those files, and its default `delete_threshold` is 0.95, which rewrites a file only when that share of its rows is deleted ([DuckLake documentation: Rewrite Files with Deletes](https://ducklake.select/docs/stable/duckdb/maintenance/rewrite_data_files)). The default is a value you should choose for your own data, not accept without a look.
+The merge skips a file that has a [delete file](#delete-rows-iceberg-and-delta) attached. A delete file is a record of deleted rows, which DuckLake writes instead of rewriting the data file when rows are deleted. [Chapter 5](#corrections-and-merges) writes delete files in DuckLake, so this limit applies there. The DuckLake documentation names `ducklake_rewrite_data_files` as the call that rewrites those files, and its default `delete_threshold` is 0.95, which rewrites a file only when that share of its rows is deleted ([DuckLake documentation: Rewrite Files with Deletes](https://ducklake.select/docs/stable/duckdb/maintenance/rewrite_data_files)). The default is a value you should choose for your own data, not accept without a look.
 
 **Working rule:** Run `ducklake_merge_adjacent_files` after the inserts for a period are done, and read the file count it returns. A merge does not remove deleted rows, so for a table with delete files, call `ducklake_rewrite_data_files` with a `delete_threshold` that you chose for that table, and check the result.
 
@@ -104,7 +104,7 @@ When a check fails, stop the job and leave the table as it is. Do not run a seco
 
 ## What goes wrong in production {#compaction-production-failures}
 
-**Storage grows before it shrinks.** Every compaction in this chapter writes replacement files and leaves the old ones on disk. The counts show it. After the DuckLake merge the table lists {{out:compact-ducklake:data files after merge}} data file while {{out:compact-ducklake:parquet files on disk after merge}} Parquet files sit on disk, and after the Iceberg rewrite the table lists {{out:iceberg-rewrite-by-overwrite:data files after rewrite}} while {{out:iceberg-rewrite-by-overwrite:parquet files on disk after rewrite}} sit on disk. A compaction that runs without an expiry step leaves the storage bill higher than before. Plan the expiry and the cleanup together with the compaction, and measure the disk after both. The sign is a disk that grows after each run while the table's row count and file count stay flat.
+**Storage grows before it shrinks.** Every compaction in this chapter writes replacement files and leaves the old ones on disk. The counts show it. After the DuckLake merge the table lists {{out:compact-ducklake:data files after merge}} data file while {{out:compact-ducklake:parquet files on disk after merge}} Parquet files sit on disk, and after the Iceberg rewrite the table lists {{out:iceberg-rewrite-by-overwrite:data files after rewrite}} while {{out:iceberg-rewrite-by-overwrite:parquet files on disk after rewrite}} sit on disk. A compaction that runs without an [expiry](#snapshots-keep-files-alive) step leaves the storage bill higher than before. Plan the expiry and the cleanup together with the compaction, and measure the disk after both. The sign is a disk that grows after each run while the table's row count and file count stay flat.
 
 **Deleted rows stay until a rewrite handles them.** A DuckLake merge skips any file that has a delete file, as [the merge section](#merge-adjacent-files) shows. A table with deletes that is only merged keeps those files as they are. Use `ducklake_rewrite_data_files` for them, with a threshold you chose. Measure the rows before and after, because the merge alone will not show you that the deleted rows are still in the files. Watch for a count of files with delete files that stays the same after each merge.
 
