@@ -53,6 +53,7 @@ section = "what-a-table-format-adds"
 
 [concepts.relations]
 part-of = ["table-formats/metadata"]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/manifest"]
 
 [[concepts]]
 id = "snapshot"
@@ -153,6 +154,9 @@ definition = "Iceberg gives every column an integer field ID when the column is 
 section = "columns-tracked-by-id"
 example = "rename-by-id"
 
+[concepts.relations]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/field-id"]
+
 [[concepts]]
 id = "column-mapping"
 term = "column mapping"
@@ -250,6 +254,9 @@ definition = "A delete removes the rows that match a predicate."
 section = "delete-rows-iceberg-and-delta"
 example = "delete-low-views"
 
+[concepts.relations]
+prerequisite-of = ["copy-on-write", "merge-on-read"]
+
 [[concepts]]
 id = "copy-on-write"
 term = "copy-on-write"
@@ -259,6 +266,7 @@ example = "delete-low-views"
 
 [concepts.relations]
 contrasts-with = ["merge-on-read"]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/copy-on-write"]
 implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }, { to = "deltalake", versions = ">=1.6" }]
 
 [[concepts]]
@@ -270,6 +278,7 @@ example = "delete-low-views"
 
 [concepts.relations]
 implemented-by = [{ to = "duckdb", versions = ">=2.0" }]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/merge-on-read"]
 
 [[concepts]]
 id = "delete-file"
@@ -300,6 +309,7 @@ context = "data-pipelines"
 definition = "An upsert updates the row whose key matches and inserts the row whose key does not."
 section = "upsert-corrected-hour"
 example = "redeliver-hour-upsert"
+wikidata = "Q94981996"
 
 [concepts.relations]
 implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }]
@@ -311,6 +321,7 @@ context = "data-pipelines"
 definition = "A `MERGE` statement names the target table, the source batch and the key in its `ON` clause, and each `WHEN` clause says what to do with a matched or an unmatched row."
 section = "merge-in-ducklake"
 example = "merge-correction-ducklake"
+wikidata = "Q2607100"
 
 [concepts.relations]
 implemented-by = [{ to = "duckdb", versions = ">=2.0" }]
@@ -351,6 +362,7 @@ example = "expire-iceberg-snapshots"
 
 [concepts.relations]
 prerequisite-of = ["table-formats/cleanup"]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/snapshot-expiry"]
 implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }, { to = "duckdb", versions = ">=2.0" }]
 
 [[concepts]]
@@ -368,6 +380,9 @@ aliases = ["orphan file", "orphan files", "orphans"]
 definition = "A file that no snapshot lists is an orphan."
 section = "find-orphan-files"
 example = "expire-iceberg-snapshots"
+
+[concepts.relations]
+same-as = ["https://rollingedition.com/concepts/data-warehousing/unreferenced-file"]
 
 [[concepts]]
 id = "tombstone"
@@ -438,6 +453,9 @@ definition = "The data path, the folder where DuckLake writes Parquet files, is 
 section = "attach-ducklake-catalog"
 example = "attach-ducklake"
 applies_to = ["duckdb"]
+
+[concepts.relations]
+part-of = ["table-formats/catalog"]
 
 [[concepts]]
 id = "copy"
