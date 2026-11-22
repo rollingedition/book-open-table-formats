@@ -36,6 +36,14 @@ You load the six hours into a Delta table, one append each, then count the files
 
 [Example: file-counts-before-after](../examples/file-counts-before-after.py)
 
+{{fig:files-live-and-on-disk}} follows the same six appends and the compaction version by version. The solid line counts the files each version lists, and the dashed line counts the Parquet files on disk after that version was written.
+
+![Until the compaction the two lines lie on top of each other, and at the compaction the solid line drops to one file while the dashed line rises by one](../examples/figures/files-live-and-on-disk.svg "The files each table version lists, and the Parquet files on disk after it")
+
+[Example: figure-files-live-and-on-disk](../examples/figure-files-live-and-on-disk.py)
+
+The two lines lie on top of each other until version {{out:figure-files-live-and-on-disk:compaction version}}, because every file on disk is still listed by a version. The compaction is the next commit. It drops the solid line to {{out:figure-files-live-and-on-disk:files in version 6}} file and raises the dashed line to {{out:figure-files-live-and-on-disk:parquet files on disk after version 6}}, because the files it replaced are still on disk.
+
 The compaction changes the files, not the rows. The table lists {{out:file-counts-before-after:files before compaction}} data files before the call and {{out:file-counts-before-after:files after compaction}} after it, and a read of the current version returns {{out:file-counts-before-after:rows after compaction}} rows, the same rows as before, in fewer files.
 
 The metrics the call returns count the same change from the library's side: {{out:file-counts-before-after:files added by compaction}} file added and {{out:file-counts-before-after:files removed by compaction}} files removed.

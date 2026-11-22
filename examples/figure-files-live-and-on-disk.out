@@ -1,0 +1,16 @@
+files in version 0: 1
+parquet files on disk after version 0: 1
+files in version 1: 2
+parquet files on disk after version 1: 2
+files in version 2: 3
+parquet files on disk after version 2: 3
+files in version 3: 4
+parquet files on disk after version 3: 4
+files in version 4: 5
+parquet files on disk after version 4: 5
+files in version 5: 6
+parquet files on disk after version 5: 6
+files in version 6: 1
+parquet files on disk after version 6: 7
+compaction version: 6
+figure: figures/files-live-and-on-disk.svg
