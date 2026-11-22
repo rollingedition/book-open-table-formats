@@ -24,7 +24,7 @@ The three formats in this book use three different catalogs:
 | DuckLake | The catalog file, attached by path | Inside the catalog file |
 | Delta Lake | Nothing; the table's folder path | In the table's folder |
 
-The Iceberg REST catalog is a catalog of another kind, a service instead of a file. Its [REST catalog page](https://iceberg.apache.org/rest-catalog-spec/) describes a common API, specified with OpenAPI, for interacting with any Iceberg catalog, so that clients need one implementation for all of them. The same page says the protocol uses change-based commits, so the service can resolve conflicts and retry on its side, and that the catalog service writes the root metadata. This chapter runs no REST catalog. Each one needs a running service, and the examples here run offline with no service. The book does not compare the products that implement the protocol.
+The Iceberg REST catalog is a catalog of another kind, an HTTP API that a service implements, instead of a file. Its [REST catalog page](https://iceberg.apache.org/rest-catalog-spec/) describes a common API, specified with OpenAPI, for interacting with any Iceberg catalog, so that clients need one implementation for all of them. The same page says the protocol uses change-based commits, so the service can resolve conflicts and retry on its side, and that the catalog service writes the root metadata. This chapter runs no REST catalog. Each one needs a running service, and the examples here run offline with no service. The book does not compare the products that implement the protocol.
 
 A catalog can hold more than names. Classifications and retention rules are table metadata too. [*Data Governance as Code*](https://rollingedition.com/data-governance-as-code) covers them, and this book does not teach them.
 
@@ -32,7 +32,7 @@ A catalog can hold more than names. Classifications and retention rules are tabl
 
 ## Register a table in a SQL catalog {#register-iceberg-in-sql-catalog}
 
-The pyiceberg `SqlCatalog` keeps its tables in a database. You give it a `uri` for that database and a `warehouse` for the folder where it writes data files and metadata. This book uses a SQLite file for the database and a local folder for the warehouse. The [pyiceberg configuration page](https://py.iceberg.apache.org/configuration/) says the SQL catalog needs a database behind it, and warns that SQLite is not built for concurrency and suits exploratory or development use. These examples are for development, so that limit does not change anything in them. A production catalog needs a database that several writers can use.
+The pyiceberg `SqlCatalog` keeps its list of tables in a database. You give it a `uri` for that database and a `warehouse` for the folder where it writes data files and metadata. This book uses a SQLite file for the database and a local folder for the warehouse. The [pyiceberg configuration page](https://py.iceberg.apache.org/configuration/) says the SQL catalog needs a database behind it, and warns that SQLite is not built for concurrency and suits exploratory or development use. These examples are for development, so that limit does not change anything in them. A production catalog needs a database that several writers can use.
 
 The next example opens the same catalog file a second time, with the same name, and reads the table through that second object. It then registers a second name for the table's metadata, and shows what a catalog object with a different name can see.
 

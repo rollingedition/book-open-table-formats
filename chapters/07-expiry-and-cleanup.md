@@ -64,9 +64,9 @@ A listing cannot tell an orphan from a file that a writer has written and not ye
 
 ## Vacuum a table with deltalake {#vacuum-in-delta-lake}
 
-Delta Lake does not delete a file when a commit replaces it. A Delta commit that replaces a file adds a `remove` action to the log, a tombstone that says the file is no longer part of the table, and the file stays on disk. The protocol states that such files "can be lazily deleted by the vacuum command after a user-specified retention period (default 7 days)" ([Delta transaction log protocol, v4.4.1](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). The output in this section uses Delta's own version numbers, which start at 0.
+Delta Lake does not delete a file when a commit replaces it. A Delta commit that removes or replaces a file adds a `remove` action to the log, a tombstone that says the file is no longer part of the table, and the file stays on disk. The protocol states that such files "can be lazily deleted by the vacuum command after a user-specified retention period (default 7 days)" ([Delta transaction log protocol, v4.4.1](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). The output in this section uses Delta's own version numbers, which start at 0.
 
-Vacuum deletes the files whose tombstones are older than the retention. Until then, every version can be read, because every file it lists still exists. The Delta utility page states the cost: "The ability to time travel back to a version older than the retention period is lost after running vacuum" ([Delta Lake, VACUUM](https://docs.delta.io/delta-utility/)).
+Vacuum deletes the files whose tombstones are older than the retention, and the files older than it that the log never mentions. Until then, every version can be read, because every file it lists still exists. The Delta utility page states the cost: "The ability to time travel back to a version older than the retention period is lost after running vacuum" ([Delta Lake, VACUUM](https://docs.delta.io/delta-utility/)).
 
 The case has three appends, which make versions 0 to 2, and then the hour-02 correction. The correction is a delete of that hour, which is version 3, followed by an append of the corrected rows, which is version 4. Version 2 still lists the old hour-02 file, and version 3 does not. Nothing has been removed yet, and that is the state the next section starts from.
 
@@ -76,7 +76,7 @@ The default retention in deltalake is 168 hours, seven days. A table can set its
 
 ### Dry run first {#vacuum-dry-run-first}
 
-A dry run lists the files that a real vacuum would delete and deletes none of them. Run one before every vacuum, and compare its count with the table's history. The case is three appends, a delete in version 3 and an append in version 4. A short list can be checked by hand: here, each file in the list is one that a delete removed, and the one that matters is the delete in version 3. Two dry runs on that history ask vacuum, at two retentions, what it would delete:
+A dry run lists what a real call, such as a vacuum, would delete and deletes none of it. Run one before every vacuum, and compare its count with the table's history. The case is three appends, a delete in version 3 and an append in version 4. A short list can be checked by hand: here, each file in the list is one that a delete removed, and the one that matters is the delete in version 3. Two dry runs on that history ask vacuum, at two retentions, what it would delete:
 
 [Example: vacuum-delta-dry-run](../examples/vacuum-delta-dry-run.py)
 

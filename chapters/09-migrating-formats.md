@@ -12,7 +12,7 @@ The examples in this chapter pin {{version:pyiceberg}} for pyiceberg, {{version:
 
 ## What a copy keeps and loses {#what-a-copy-keeps-and-loses}
 
-A copy reads the rows of one table at one moment and writes them into another table, in another format. Each target library writes its own data files, its own metadata and its own history. What survives the trip is what both sides can represent: the rows, and the columns whose types both sides support. Everything else stays with the source, or has to be set again on the target by hand.
+A copy reads the rows of one table at one moment and writes them into another table, here in another format. Each target library writes its own data files, its own metadata and its own history. What survives the trip is what both sides can represent: the rows, and the columns whose types both sides support. Everything else stays with the source, or has to be set again on the target by hand.
 
 The losses are easiest to see as a table. Each row names a part of the table, what the copy does with it, and where this chapter shows the result.
 

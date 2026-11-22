@@ -91,7 +91,7 @@ pyiceberg deletes by rewriting the data files it touches at these pins, although
 
 ## Deletion vectors need a protocol upgrade {#delta-deletion-vectors}
 
-The Delta Lake protocol, at the release tag its link names, says a table with deletion vectors needs reader version 3 and writer version 7, with the `deletionVectors` feature in both feature lists. It also says a reader must implement every feature in the reader list before it reads the table ([Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). A reader feature in a Delta table's protocol is a promise that every reader handles it, so a reader without it cannot read the table correctly.
+The Delta Lake protocol, at the release tag its link names, says a table with deletion vectors needs reader version 3 and writer version 7, with the `deletionVectors` feature in both feature lists. It also says a reader must implement every feature in the reader list before it reads the table ([Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). A reader feature in a Delta table's protocol is a requirement that every reader implement it, so a reader without it cannot read the table correctly.
 
 [Example: feature-check](../examples/feature-check.py)
 

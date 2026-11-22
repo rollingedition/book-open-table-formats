@@ -4,7 +4,7 @@ chapter_id: compaction
 
 # Compact the small files that hourly appends leave
 
-This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a Parquet file that holds rows of a table.
+This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a file, Parquet in this book, that holds rows of a table.
 
 ## Hourly appends leave small files {#hourly-appends-leave-small-files}
 
