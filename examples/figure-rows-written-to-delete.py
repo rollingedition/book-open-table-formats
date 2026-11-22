@@ -6,7 +6,7 @@ import pyarrow.parquet as pq
 from deltalake import DeltaTable
 from pyiceberg.expressions import And, EqualTo, LessThan
 
-from lib.figures import ACCENT, INK, MUTED, new_figure, save
+from lib.figures import ACCENT, MUTED, new_figure, save
 from lib.lakehouse import DUCKLAKE_ALIAS, NAMESPACE, TABLE, load_three_formats, new_warehouse, parquet_files, read_delta, scan_arrow
 
 LOW_VIEWS = 180  # the threshold of delete-low-views: it catches a few rows of hour 02
@@ -48,9 +48,10 @@ def main():
 
         fig, ax = new_figure(height=2.4)
         # barh draws the first label at the bottom; each bar's label names the unit it counts
-        ax.bar_label(ax.barh(["DuckLake, merge-on-read", "Delta Lake, copy-on-write", "Iceberg, copy-on-write"], [lake_written, delta_written, iceberg_written], color=[ACCENT, MUTED, INK]),
+        ax.bar_label(ax.barh(["DuckLake, merge-on-read", "Delta Lake, copy-on-write", "Iceberg, copy-on-write"], [lake_written, delta_written, iceberg_written], color=[MUTED, ACCENT, ACCENT]),
                      labels=[f"{lake_written} positions", f"{delta_written} rows", f"{iceberg_written} rows"], padding=4)
-        ax.set_xlim(0, iceberg_written * 1.25)  # room for the value labels; copy-on-write is the longest bar
+        # room for the value labels, with copy-on-write the longest bar; the axis names both units, rows and positions
+        ax.set(xlim=(0, iceberg_written * 1.25), xlabel="rows of data, or positions in a delete file, written")
         ax.grid(False)  # the value labels carry the values, so no grid line crosses a bar
         save(fig, "rows-written-to-delete")
 

@@ -120,7 +120,7 @@ description: "Use when you create or append to an Iceberg (pyiceberg), Delta Lak
 
 **When:** Old snapshots or versions keep storage in use, or a cleanup is planned.
 
-1. Decide which snapshots or versions any reader, report or audit may still need. Expire the rest before you remove any file. [Snapshots keep files alive](#snapshots-keep-files-alive)
+1. Decide which snapshots or versions any reader, report or audit may still need. Expire the rest before you remove any file; in Delta Lake, where vacuum does not wait for expiry, set its retention to cover the versions you keep. [Snapshots keep files alive](#snapshots-keep-files-alive)
 2. In Iceberg, expire by snapshot ID. The call deletes no data files. Find the files that no snapshot lists, and remove them only after no writer can commit them. [Expire snapshots with pyiceberg](#expire-snapshots-in-iceberg), [Find orphan files after expiry](#find-orphan-files)
 3. In Delta Lake, run `vacuum` as a dry run and compare its count with the table's history, then run it for real. Keep the default retention unless you have checked the longest read and write. [Dry run first](#vacuum-dry-run-first), [Vacuum a table with deltalake](#vacuum-in-delta-lake)
 4. In DuckLake, expire the snapshots, clean up the scheduled files, then clean up the orphans, each as a dry run before the real call. Use `cleanup_all` only when one catalog owns the data folder and no reader uses those files. [Expire and clean up in DuckLake](#expire-and-clean-up-in-ducklake)

@@ -1,7 +1,7 @@
 """Expire the three append snapshots, then draw which data files each snapshot lists. The figure rests on the printed
 lines: file 3 is listed by snapshot 3 before the expiry and by no kept snapshot after it, and it stays on disk."""
 
-from lib.figures import ACCENT, INK, MUTED, new_figure, save
+from lib.figures import ACCENT, MUTED, new_figure, save
 from lib.lakehouse import (ICEBERG_ID, create_iceberg_table, hour_corrections, hour_filter, new_warehouse,
                            orphan_data_files, read_cut_hour, snapshot_labels)
 
@@ -48,5 +48,5 @@ with new_warehouse() as wh:
     ax.set_xticks(range(1, len(names) + 1), list(names.values()))
     ax.set_ylim(len(ids) + 0.5, 0.5)  # snapshot 1 at the top, the current snapshot at the bottom
     col = list(names.values()).index(unreferenced[0]) + 1  # the one column no kept row lists
-    ax.text(col, len(expired) + 1.5, "listed by no\nkept snapshot", ha="center", va="center", color=INK, fontsize=8)
+    ax.text(col, len(expired) + 1.5, "listed by no\nkept snapshot", ha="center", va="center", color=MUTED)
     save(fig, "snapshots-keep-files")

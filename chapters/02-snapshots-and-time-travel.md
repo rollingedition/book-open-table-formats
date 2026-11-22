@@ -38,7 +38,7 @@ The commit's operation shows what sharing is possible. The spec defines [`append
 
 The row counts in [Snapshots in pyiceberg](#snapshots-in-pyiceberg) show the pointers at work. Snapshot 2 reads back {{out:read-as-of-snapshot:snapshot 2 rows}} rows, which is the {{out:snapshot-history:snapshot 1 rows added}} rows of hour 00 plus the {{out:snapshot-history:snapshot 2 rows added}} of hour 01, and nothing from hour 02. Snapshot 3 reads all three hours. Each snapshot reads the rows that its commits had made visible by then, and no more. The gap between the two counts is the rows that the third commit added, {{out:snapshot-history:snapshot 3 rows added}} of them, so the history and the reads agree.
 
-**Working rule:** Treat an old snapshot as readable only while its files exist. Before you remove files, decide which snapshots you keep, and expire the others first. A query over an old snapshot that fails after a cleanup is a missing file. The fix is to find that file in a copy of the table, not to read a different snapshot in its place.
+**Working rule:** Treat an old snapshot as readable only while its files exist. Before you remove files, decide which snapshots you keep, and expire the others first; in Delta Lake, lengthen [vacuum's retention](#vacuum-in-delta-lake) instead. A query over an old snapshot that fails after a cleanup is a missing file. The fix is to find that file in a copy of the table, not to read a different snapshot in its place.
 
 ## Read an earlier snapshot {#read-an-earlier-snapshot}
 

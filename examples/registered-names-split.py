@@ -1,7 +1,7 @@
 """Register a second name for a table's metadata, then commit through each name in turn. The point rests on the
 'archive rows after a commit through wiki' line: the registered name keeps the rows it read before that commit."""
 
-from lib.lakehouse import ICEBERG_ID, create_iceberg_table, new_warehouse, open_catalog, read_cut_hour, scan_arrow
+from lib.lakehouse import ICEBERG_ID, create_iceberg_table, new_warehouse, open_catalog, parquet_files, read_cut_hour, scan_arrow
 
 ARCHIVE_ID = "archive.pageviews_copy"
 
@@ -32,7 +32,7 @@ with new_warehouse() as wh:
     print("wiki rows after a commit through wiki:", wiki_after)
     print("archive rows after a commit through wiki:", archive_after)
     assert wiki_after > wiki
-    assert archive_after == archive                      # the registered name still reads its old state
+    assert archive_after == archive
 
     # Two commits go through the registered name, so its count differs from the original's. Each load is fresh,
     # because a loaded table keeps the state it had at load time.
@@ -41,5 +41,6 @@ with new_warehouse() as wh:
     wiki_again, archive_again = rows_by_name(catalog)
     print("wiki rows after two commits through archive:", wiki_again)
     print("archive rows after two commits through archive:", archive_again)
-    assert wiki_again == wiki_after                      # the original name still reads its old state
+    print("data files both names list:", len(set(parquet_files(catalog.load_table(ICEBERG_ID))) & set(parquet_files(catalog.load_table(ARCHIVE_ID)))))
+    assert wiki_again == wiki_after
     assert archive_again > archive_after

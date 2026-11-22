@@ -22,7 +22,7 @@ Corrections here are built in code, from the real cut of [chapter 1](#land-three
 
 ## Delete rows, and what each format writes {#delete-rows-iceberg-and-delta}
 
-A delete removes the rows that match a predicate. The rows go away in every format, but the files that held them can be handled in two ways. In copy-on-write, the writer rewrites each data file that held a matching row, dropping deleted rows and writing changed ones. In merge-on-read, the writer leaves the data file alone and writes a delete file that records which rows are gone. Readers apply the delete file when they scan.
+A delete removes the rows that match a predicate. The rows go away in every format, but the files that held them can be handled in two ways. In copy-on-write, the writer rewrites each data file that held a matching row, leaving out the deleted rows or writing the changed ones. In merge-on-read, the writer leaves the data file alone and writes a delete file that records which rows are gone. Readers apply the delete file when they scan.
 
 The two libraries take the predicate in different forms. pyiceberg takes an expression object, built here from `EqualTo` and `LessThan`. deltalake takes a SQL string, which reads like the `WHERE` clause a reader already knows. The delete below uses both forms on the same rows, so you can compare them directly.
 
@@ -44,9 +44,9 @@ Each library reports its own counts, and this example computes the deleted rows 
 
 The two write styles trade cost between the writer and the reader. Copy-on-write makes the write expensive and the read cheap: a reader gets the rows as the files hold them, with nothing to apply. Merge-on-read makes the write cheap, because it writes only the positions of the deleted rows, and it moves the cost to reads until something rewrites the data files.
 
-{{fig:rows-written-to-delete}} counts what each format writes for [the delete](#delete-rows-iceberg-and-delta) removing {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows: copy-on-write pays for the file, merge-on-read for the rows.
+{{fig:rows-written-to-delete}} counts what each format writes to delete {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows: copy-on-write pays for the file, merge-on-read for the rows.
 
-![Copy-on-write rewrites the rest of a file to remove a few rows, and merge-on-read writes only the positions of those rows](../examples/figures/rows-written-to-delete.svg "Rows of data, or positions in a delete file, written by the same delete")
+![Copy-on-write rewrites the rest of a file, and merge-on-read writes only the deleted rows' positions](../examples/figures/rows-written-to-delete.svg "Rows of data, or positions in a delete file, written by the same delete")
 
 [Example: figure-rows-written-to-delete](../examples/figure-rows-written-to-delete.py)
 
@@ -62,7 +62,7 @@ The three formats in this chapter differ as follows.
 
 The DuckLake row is shown by the delete example, which counts the delete file and the data files that stay in place. The [DuckLake documentation on deletion vectors](https://ducklake.select/docs/stable/duckdb/advanced_features/deletion_vectors) describes an experimental option that records deleted row positions in `.puffin` files. That option is off by default, and this chapter does not turn it on. The cost of reading through delete files is not measured here. A reader of a merge-on-read table pays that cost on every scan until the data files are rewritten, so measure it on the reader's own table.
 
-Delta Lake also has deletion vectors, which, like DuckLake's, record deleted row positions. That makes them Delta's merge-on-read option, not a third write style, and this book does not use them. At the pins, deltalake {{version:deltalake}} does not write a deletion vector: `delete` on a table with the feature enabled still rewrites the file. The [Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md) requires the deletion-vectors feature in a table's reader and writer features when the table uses deletion vectors, and enabling the feature adds it to both. `QueryBuilder`, which this book uses for every Delta read, reads such a table. `to_pyarrow_table` and `to_pyarrow_dataset` refuse it, because the table declares the feature. So this book keeps the feature off, and its Delta deletes are copy-on-write.
+Delta Lake also has deletion vectors, which, like DuckLake's experimental ones, record deleted row positions. That makes them Delta's merge-on-read option, not a third write style, and this book does not use them. At the pins, deltalake {{version:deltalake}} does not write a deletion vector: `delete` on a table with the feature enabled still rewrites the file. The [Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md) requires the deletion-vectors feature in a table's reader and writer features when the table uses deletion vectors, and enabling the feature adds it to both. `QueryBuilder`, which this book uses for every Delta read, reads such a table. `to_pyarrow_table` and `to_pyarrow_dataset` refuse it, because the table declares the feature. So this book keeps the feature off, and its Delta deletes are copy-on-write.
 
 **Working rule:** Expect copy-on-write deletes to cost a file rewrite for each file that holds a match. Prefer predicates whose matches sit in few files, such as one hour, and batch the deletes that you know about into one write. Merge-on-read suits a table where writes are frequent and reads can pay for the delete files until something rewrites them.
 

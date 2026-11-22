@@ -10,7 +10,7 @@ The earlier chapters opened each table by its own route: a catalog object for Ic
 
 ## What a catalog holds {#what-a-catalog-holds}
 
-Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds) files. The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. For Iceberg, a reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
+Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds). The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. For Iceberg, a reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
 
 For Iceberg, the catalog holds pointers, not the rows. The Parquet files stay in the warehouse folder, and the catalog says where to start reading. Names have a second level as well: `wiki` is a namespace, and every Iceberg table name in this book is a namespace and a table name joined by a dot.
 
@@ -56,7 +56,9 @@ A registered name is a second route to the table as it was when registered, not 
 
 [Example: registered-names-split](../examples/registered-names-split.py)
 
-A commit through the original name moves only that name's pointer. The registered name still reads {{out:registered-names-split:archive rows after a commit through wiki}} rows, where the original reads {{out:registered-names-split:wiki rows after a commit through wiki}}.
+A commit through either name moves only that name's pointer. After a commit through the original, the registered name still reads {{out:registered-names-split:archive rows after a commit through wiki}} rows, where the original reads {{out:registered-names-split:wiki rows after a commit through wiki}}. After two commits through the registered name, it reads {{out:registered-names-split:archive rows after two commits through archive}} rows, and the original still reads {{out:registered-names-split:wiki rows after two commits through archive}}.
+
+The two names still list {{out:registered-names-split:data files both names list}} of the same data files.
 
 **Working rule:** Keep one writer name for each table. Register a metadata file under a second name only for a read you will remove afterwards, and pass `overwrite=True` only when you mean to replace that entry.
 

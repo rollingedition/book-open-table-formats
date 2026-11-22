@@ -4,7 +4,7 @@ chapter_id: expiry-and-cleanup
 
 # Expire snapshots and remove unreferenced files
 
-After this chapter you can expire old snapshots in each of the three formats, remove the data files that only those snapshots still listed, and show that a read of an expired snapshot fails.
+After this chapter you can expire old snapshots in each of the three formats, remove the data files that only those snapshots still listed, or in Delta Lake those past [vacuum](#vacuum-in-delta-lake)'s retention, and show that a read of an expired snapshot fails.
 
 [Compaction](#hourly-appends-leave-small-files) leaves the same kind of old file: the rewrites left the replaced files on disk, because older snapshots still list them. This chapter expires the old snapshots of `wiki.pageviews_hourly`, then deletes the files that no snapshot lists any more. Every example here uses the hour-02 correction from [the corrections chapter](#late-data-as-correction), written as an overwrite of that hour rather than as the upsert in its later section, because the overwrite leaves exactly one old file per format. Those old files stay until their snapshots are expired and their files are removed. Both steps run in each format, and each step is checked with a count rather than with a listing you have to trust.
 
@@ -12,7 +12,7 @@ After this chapter you can expire old snapshots in each of the three formats, re
 
 Every snapshot records which data files make up the table at that commit. [What a snapshot points to](#what-a-snapshot-points-to) covers how each format stores that list. The point for this chapter is that a commit that replaces rows does not delete the files it replaces. It writes files for the replacement rows, and the snapshots from before the commit still list the old ones, so time travel keeps working. A data file becomes an [orphan](#find-orphan-files) only when no snapshot you keep lists it.
 
-Removing a file takes two steps in every format: expiry, which drops the versions that list it, and cleanup, which deletes it. The Iceberg maintenance page gives the same order: expiry removes snapshots from the metadata, so time travel can't reach them, and "data files are not deleted until they are no longer referenced by a snapshot that may be used for time travel or rollback" ([Apache Iceberg, maintenance](https://iceberg.apache.org/docs/latest/maintenance/)). After expiry, cleanup deletes the files that no remaining snapshot lists, and in Delta Lake vacuum also deletes a file that an older version still lists once its tombstone is past the retention.
+Removing a file takes two steps in Iceberg and DuckLake: expiry, which drops the snapshots that list it, and cleanup, which deletes it. The Iceberg maintenance page gives the same order: expiry removes snapshots from the metadata, so time travel can't reach them, and "data files are not deleted until they are no longer referenced by a snapshot that may be used for time travel or rollback" ([Apache Iceberg, maintenance](https://iceberg.apache.org/docs/latest/maintenance/)). After expiry, cleanup deletes the files that no remaining snapshot lists, and in Delta Lake [vacuum](#vacuum-in-delta-lake) also deletes a file that an older version still lists once its tombstone is past the retention.
 
 `wiki.pageviews_hourly` takes three hourly appends, and then hour 02 is corrected by an overwrite of that hour. Each append writes one file. The overwrite writes a file with the corrected hour-02 rows, and it removes the old file from the current snapshot. The snapshot that appended the old file still lists it. Until that snapshot is expired, the old file cannot be deleted without breaking time travel to it. [Upserting a corrected hour](#upsert-corrected-hour) shows the other way to write the same correction, and it leaves the same kind of old file behind.
 
@@ -24,7 +24,7 @@ Each format has its own expiry call and its own cleanup call. The table lists th
 | Delta Lake (deltalake) | `cleanup_metadata`, by log retention | No | `vacuum` |
 | DuckLake | `ducklake_expire_snapshots` | No | `ducklake_cleanup_old_files`, then `ducklake_delete_orphaned_files` |
 
-**Working rule:** Decide which snapshots or versions a reader may still need, and expire the rest before you remove any file. Never remove a file that a snapshot you keep still lists, and check that claim with a count before you delete.
+**Working rule:** Decide which snapshots or versions a reader may still need, and expire the rest before you remove any file. Never remove a file that a snapshot you keep still lists, and check that claim with a count before you delete. In Delta Lake, the versions you keep are those inside vacuum's retention, not those still in the log: set `delta.deletedFileRetentionDuration` to cover every version a reader may need.
 
 ## Expire snapshots with pyiceberg {#expire-snapshots-in-iceberg}
 
@@ -42,13 +42,13 @@ Then the example expires snapshots 1 to 3, the three appends. The snapshots that
 
 The last read fails. A scan of snapshot 3 after the expiry raises `ValueError`, which the output shows as "read snapshot 3: {{out:expire-iceberg-snapshots:read snapshot 3}}". A reader that pinned snapshot 3 before the expiry gets an error, not the old rows. The error, `Snapshot not found`, names the snapshot's ID, but it does not say that an expiry removed the snapshot. Your own logs have to record which expiry ran and which snapshot the report used.
 
-Which file the expiry left unreferenced, and why, shows in {{fig:snapshots-keep-files}}, which draws the same {{out:figure-snapshots-keep-files:snapshots before expiry}} snapshots as a grid. Each row is a snapshot and each column a data file, in the order the files were written, and a square marks a file that snapshot lists. The three expired rows are muted and the two kept rows are in the accent colour, and the row labels say which is which. Look at the column for file 3, the old hour-02 file. Snapshot 3 lists it, and snapshot 4, the overwrite's delete, does not, so snapshot 3 is the only snapshot that lists it. Once the three muted rows expire, no kept row lists it, and the note in that column says so.
+Which file the expiry left unreferenced, and why, shows in {{fig:snapshots-keep-files}}, which draws the same {{out:figure-snapshots-keep-files:snapshots before expiry}} snapshots as a grid. Each row is a snapshot and each column a data file, in the order the files were written, and a square marks a file that snapshot lists. Each row's label says whether the expiry removes that snapshot or keeps it. Look at the column for file 3, the old hour-02 file. Snapshot 3 lists it, and snapshot 4, the overwrite's delete, does not, so snapshot 3 is the only snapshot that lists it. Once the three expired rows are gone, no kept row lists it, and the note in that column says so.
 
 ![Once the three appends expire, the one file only they listed is in no kept snapshot](../examples/figures/snapshots-keep-files.svg "Which data files each snapshot lists, and which snapshots the expiry removes")
 
 [Example: figure-snapshots-keep-files](../examples/figure-snapshots-keep-files.py)
 
-The example prints the file no kept snapshot lists, {{out:figure-snapshots-keep-files:unreferenced after expiry}}, and counts {{out:figure-snapshots-keep-files:unreferenced data files left on disk}} unreferenced file still in the table's folder: the expiry removed the snapshot that listed it, not the file.
+Printed, the file no kept snapshot lists is {{out:figure-snapshots-keep-files:unreferenced after expiry}}, and {{out:figure-snapshots-keep-files:unreferenced data files left on disk}} unreferenced file is still in the table's folder: the expiry removed the snapshot that listed it, not the file.
 
 **Working rule:** Expire Iceberg snapshots by ID, chosen from the commit order, and count the files each remaining snapshot lists before and after. Expect no disk space back from the expiry. pyiceberg removes metadata only, so the files it leaves behind stay on disk until you remove them yourself.
 
@@ -68,21 +68,21 @@ Delta Lake does not delete a file when a commit replaces it. A Delta commit that
 
 Vacuum deletes the files whose tombstones are older than the retention, and the files older than it that the log never mentions. Until then, every version can be read, because every file it lists still exists. The Delta utility page states the cost: "The ability to time travel back to a version older than the retention period is lost after running vacuum" ([Delta Lake, VACUUM](https://docs.delta.io/delta-utility/)).
 
-Log retention is Delta's expiry, and it deletes no data file. `cleanup_metadata` removes old log entries by `delta.logRetentionDuration`, 30 days by default, once a checkpoint exists. The example uses one second:
+Log retention is Delta's expiry, and it deletes no data file. `cleanup_metadata` removes old log entries by `delta.logRetentionDuration`, 30 days by default ([deltalake source](https://github.com/delta-io/delta-rs/blob/python-v1.6.6/python/deltalake/table.py)), but only entries older than a checkpoint, a file in the log that records the whole table state at one version ([Delta protocol, metadata cleanup](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). The example uses zero seconds:
 
 [Example: delta-log-retention](../examples/delta-log-retention.py)
 
-The log loads {{out:delta-log-retention:versions loadable before cleanup}} versions before the cleanup, and after it only the current one, {{out:delta-log-retention:current version after cleanup}}. The data files stay at {{out:delta-log-retention:data files on disk before cleanup}} and {{out:delta-log-retention:data files on disk after cleanup}}.
+The log loads {{out:delta-log-retention:versions loadable before cleanup}} versions before the cleanup, and after it only the current one, {{out:delta-log-retention:current version after cleanup}}. The disk holds {{out:delta-log-retention:data files on disk before cleanup}} data files before the cleanup and {{out:delta-log-retention:data files on disk after cleanup}} after it.
 
 The case has three appends, which make versions 0 to 2, and then the hour-02 correction. The correction is a delete of that hour, which is version 3, followed by an append of the corrected rows, which is version 4. Version 2 still lists the old hour-02 file, and version 3 does not. Nothing has been removed yet, and that is the state the next section starts from.
 
-The default retention in deltalake is 168 hours, seven days. A table can set its own in the `delta.deletedFileRetentionDuration` property, and `vacuum` uses that property when you pass no `retention_hours`. That property is the production setting. The library refuses a retention shorter than the property's value unless you turn off `enforce_retention_duration`. A longer retention needs no flag. The retention you choose is a promise about how far back history reaches. Every reader that opens an older version depends on it, and the next section shows the refusal and why this chapter's teaching run turns the check off.
+The default retention in deltalake is 168 hours, seven days. A table can set its own in the `delta.deletedFileRetentionDuration` property, and `vacuum` uses that property when you pass no `retention_hours`. The library refuses a retention shorter than the property's value unless you turn off `enforce_retention_duration`. A longer retention needs no flag. The retention you choose is a promise about how far back history reaches. Every reader that opens an older version depends on it, and the next section shows the refusal and why this chapter's teaching run turns the check off.
 
 **Working rule:** Keep vacuum's default retention, or set a longer one in `delta.deletedFileRetentionDuration`, so that every version a reader may request is still readable for that long after it stops being current. Go shorter only after you have checked the longest read and the longest write in your system, and only by turning `enforce_retention_duration` off as a deliberate, recorded decision.
 
 ### Dry run first {#vacuum-dry-run-first}
 
-A dry run lists what a real call, such as a vacuum, would delete and deletes none of it. Run one before every vacuum, and compare its count with the table's history. The case is three appends, a delete in version 3 and an append in version 4. A short list can be checked by hand: here, each file in the list is one that a delete removed, and the one that matters is the delete in version 3. Two dry runs on that history ask vacuum, at two retentions, what it would delete:
+A dry run lists what a real call, such as a vacuum, would delete and deletes none of it. Run one before every vacuum, and compare its count with the table's history. A short list can be checked by hand: here, each file in the list is one that a delete removed, and the one that matters is the delete in version 3. Two dry runs on that history ask vacuum, at two retentions, what it would delete:
 
 [Example: vacuum-delta-dry-run](../examples/vacuum-delta-dry-run.py)
 
@@ -90,9 +90,8 @@ The table is at version {{out:vacuum-delta-dry-run:current version}}. With the d
 
 The next call sets the retention to zero, and deltalake refuses it with {{out:vacuum-delta-dry-run:zero retention without the flag}}. The library's own message says that the minimum retention is 168 hours, so the check protects the default.
 
-The teaching run turns that check off with `enforce_retention_duration=False`. The code marks it as teaching-only, and production does not use it. With the check off, the dry run lists {{out:vacuum-delta-dry-run:zero retention, dry run lists}} file, and the real vacuum removes {{out:vacuum-delta-dry-run:zero retention, removed}} file, the old hour-02 file. Zero retention is the right setting for a demo, because it deletes the file at once. In production it is wrong: any reader that started before the vacuum, or that pinned an older version, loses the files it reads in the middle of a query. A short retention also deletes the files of a writer that has written but not yet committed. The Delta utility page warns that "tables can be corrupted when VACUUM deletes files that have not yet been committed" ([Delta Lake, VACUUM](https://docs.delta.io/delta-utility/)). The damage is to the table, not only to one read.
-
-Version 0 still reads, with {{out:vacuum-delta-dry-run:rows in version 0}} rows, because every file it lists still exists. Version 2 is still in the log, and its read fails with `ArrowInvalid`, shown as "read version 2: {{out:vacuum-delta-dry-run:read version 2}}". That class is the one the query engine raises for a failed Parquet read, and the message names the missing object. The read prints only the class. Read the message in your own logs before you decide that the table is damaged: it says which object is missing, and so whether a vacuum removed it.
+The teaching run turns that check off with `enforce_retention_duration=False`. The code marks it as teaching-only. With the check off, the dry run lists {{out:vacuum-delta-dry-run:zero retention, dry run lists}} file, and the real vacuum removes {{out:vacuum-delta-dry-run:zero retention, removed}} file, the old hour-02 file. Zero retention suits a demo, because it deletes the file at once. In production it is wrong: any reader that started before the vacuum, or that pinned an older version, loses the files it reads in the middle of a query. A short retention also deletes the files of a writer that has written but not yet committed. The Delta utility page warns that "tables can be corrupted when VACUUM deletes files that have not yet been committed" ([Delta Lake, VACUUM](https://docs.delta.io/delta-utility/)).
+The read at the end shows what the vacuum cost. Version 0 still reads, with {{out:vacuum-delta-dry-run:rows in version 0}} rows, because every file it lists still exists. Version 2 still loads from the log, but its read fails with `ArrowInvalid`, shown as "read version 2: {{out:vacuum-delta-dry-run:read version 2}}". That class is the one the query engine raises for a failed Parquet read, and the message names the missing object. The read prints only the class. Read the message in your own logs before you decide that the table is damaged: it says which object is missing, and so whether a vacuum removed it.
 
 A dry run is not a promise about the real run. A writer that commits between the two calls changes the table, and the real run works from the table state it finds. Treat the dry-run count as a check on what you expect, and read the real count next to it.
 
@@ -130,7 +129,7 @@ Last, the read of the delete, snapshot 7, fails: "read snapshot 7: {{out:ducklak
 
 **Retention shorter than the longest query.** The seven-day default in Delta Lake is a margin, not a measurement. A dashboard that reads a version from a month ago is outside it. If a reader must see an older version, the retention has to cover it, or the reader has to copy the data first.
 
-**Time travel that fails after maintenance.** The expired snapshot and the vacuumed version fail with `ValueError`, `ArrowInvalid` or `InvalidInputException`, depending on the format. [Iceberg](#expire-snapshots-in-iceberg) raises `ValueError`, and [Delta](#vacuum-dry-run-first) raises `ArrowInvalid`. [DuckLake](#expire-and-clean-up-in-ducklake) raises `InvalidInputException`. Any job that records a snapshot ID or a version number to read later fails the same way once that snapshot is expired. Keep your own record of which snapshot each report used, so that a rebuild starts from the data and does not depend on reading the old snapshot.
+**Time travel that fails after maintenance.** The expired snapshot and the vacuumed version fail with `ValueError`, `ArrowInvalid` or `InvalidInputException`, depending on the format. [Iceberg](#expire-snapshots-in-iceberg) raises `ValueError`, and [Delta](#vacuum-dry-run-first) raises `ArrowInvalid`. [DuckLake](#expire-and-clean-up-in-ducklake) raises `InvalidInputException`. A Delta version that log retention removed no longer loads, with `TableNotFoundError`. Any job that records a snapshot ID or a version number to read later fails the same way once that snapshot is expired. Keep your own record of which snapshot each report used, so that a rebuild starts from the data and does not depend on reading the old snapshot.
 
 **A dry run that differs from the real run.** Two calls can disagree when a writer commits between them. The count from the dry run is what you expected, not what the real run will remove. Read the real count next to the dry-run count, and stop if they differ by more than you can explain.
 
@@ -142,9 +141,10 @@ Last, the read of the delete, snapshot 7, fails: "read snapshot 7: {{out:ducklak
 
 ## Decisions this chapter made {#maintenance-decisions}
 
-- Iceberg snapshots are expired by ID, chosen from the commit order. The chapter does not expire by age, so the result does not depend on the machine's clock, and pyiceberg {{version:pyiceberg}} has no keep-last-N argument.
+- Iceberg snapshots are expired by ID, chosen from the commit order. The Iceberg expiry in this chapter is not by age, so its result does not depend on the machine's clock, and pyiceberg {{version:pyiceberg}} has no keep-last-N argument.
 - pyiceberg removes no files, so `expire-iceberg-snapshots` counts reachable and unreachable files and leaves the removal to the reader.
 - The zero-retention run in `vacuum-delta-dry-run` is teaching-only. It is marked in the code, and production keeps the default retention.
+- The zero-second log retention in `delta-log-retention` is teaching-only, like the zero-hour vacuum: every log entry before the checkpoint is past it, however long the run takes. Production keeps the 30-day default.
 - DuckLake expiry and cleanup are separate calls, and each runs as a dry run before the real call.
 - `cleanup_all` appears only in single-catalog examples. The catalog chapter covers the case where it removes live files.
 - Each example prints counts, stable labels and error class names, and no IDs, timestamps, file names or paths ([chapter 1](#first-table-decisions) gives the reason), and every number in the text comes from a bound output line or from the example's own construction.

@@ -76,7 +76,7 @@ broader = ["operation"]
 [[concepts]]
 id = "catalog"
 term = "catalog"
-context = "table-formats"   # elsewhere in data engineering, a data catalog is a governance inventory of data sets; here it is the registry from a table name to its current metadata
+context = "table-formats"   # elsewhere in data engineering, a data catalog is a governance inventory of data sets; here it is the registry from a table name to its current metadata, or the metadata itself in DuckLake
 definition = "An Iceberg table needs a catalog, which is the registry that maps a table name to the table's current metadata; a DuckLake catalog holds that metadata itself."
 section = "create-catalog-and-table"
 
@@ -176,7 +176,7 @@ part-of = ["column-mapping"]
 [[concepts]]
 id = "display-name"
 term = "display name"
-definition = "the name readers use is a display name that can change without touching the files"
+definition = "with it on, every column gets a physical name stored in the files, and the name readers use is a display name that can change without touching the files"
 section = "columns-tracked-by-id"
 
 [concepts.relations]
@@ -260,7 +260,7 @@ prerequisite-of = ["copy-on-write", "merge-on-read"]
 [[concepts]]
 id = "copy-on-write"
 term = "copy-on-write"
-definition = "In copy-on-write, the writer rewrites each data file that held a matching row, dropping deleted rows and writing changed ones."
+definition = "In copy-on-write, the writer rewrites each data file that held a matching row, leaving out the deleted rows or writing the changed ones."
 section = "delete-rows-iceberg-and-delta"
 example = "delete-low-views"
 
@@ -295,7 +295,7 @@ part-of = ["merge-on-read"]
 id = "deletion-vector"
 term = "deletion vector"
 aliases = ["deletion vectors"]
-definition = "Delta Lake also has deletion vectors, which, like DuckLake's, record deleted row positions."
+definition = "Delta Lake also has deletion vectors, which, like DuckLake's experimental ones, record deleted row positions."
 section = "copy-on-write-and-merge-on-read"
 
 [concepts.relations]
@@ -444,7 +444,7 @@ id = "registered-name"
 term = "registered name"
 definition = "A registered name is a second route to the table as it was when registered, not a live second route: the first commit through either name makes it a second table that shares the old data files."
 section = "register-from-metadata-file"
-example = "register-iceberg-table"
+example = "registered-names-split"
 
 [[concepts]]
 id = "data-path"
