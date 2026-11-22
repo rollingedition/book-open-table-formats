@@ -40,6 +40,14 @@ Before the expiry, the table has {{out:expire-iceberg-snapshots:snapshots before
 
 Then the example expires snapshots 1 to 3, the three appends. The snapshots that remain are {{out:expire-iceberg-snapshots:remaining snapshots}}, the delete from the overwrite and its append. Afterwards {{out:expire-iceberg-snapshots:data files referenced after expiry}} data files are listed, and the old hour-02 file is no longer listed by any snapshot. It is still on disk: the example reports {{out:expire-iceberg-snapshots:unreferenced data files left on disk}} unreferenced file. The current table still returns {{out:expire-iceberg-snapshots:rows in the current snapshot}} rows, so the expiry changed no data a reader of the current table sees.
 
+{{fig:snapshots-keep-files}} draws the same five snapshots as a grid. Each row is a snapshot and each column a data file, in the order the files were written, and a square marks a file that snapshot lists. The three expired rows are muted and the two kept rows are in the accent colour, and the row labels say which is which. Look at the column for file 3. Of the five snapshots, only snapshot 3 lists it, and the dashed frame marks the column that no kept row lists once the three muted rows expire.
+
+![Once the three appends expire, the one file only they listed is in no kept snapshot](../examples/figures/snapshots-keep-files.svg "Which snapshots list each data file, before and after expiry")
+
+[Example: figure-snapshots-keep-files](../examples/figure-snapshots-keep-files.py)
+
+Before the expiry, {{out:figure-snapshots-keep-files:data files referenced before expiry}} files are listed. After it, {{out:figure-snapshots-keep-files:data files referenced after expiry}} are, and the one left over is {{out:figure-snapshots-keep-files:unreferenced after expiry}}. That file stays on disk until cleanup removes it, so the disk count still shows {{out:figure-snapshots-keep-files:unreferenced data files left on disk}} unreferenced file.
+
 The last read fails. A scan of snapshot 3 after the expiry raises `ValueError`, which the output shows as "read snapshot 3: {{out:expire-iceberg-snapshots:read snapshot 3}}". A reader that pinned snapshot 3 before the expiry gets an error, not the old rows. The error, `Snapshot not found`, names the snapshot's ID, but it does not say that an expiry removed the snapshot. Your own logs have to record which expiry ran and which snapshot the report used.
 
 **Working rule:** Expire Iceberg snapshots by ID, chosen from the commit order, and count the files each remaining snapshot lists before and after. Expect no disk space back from the expiry. pyiceberg removes metadata only, so the files it leaves behind stay on disk until you remove them yourself.

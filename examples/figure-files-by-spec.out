@@ -12,8 +12,8 @@ after the change, hour 01 filter plans hours: 01
 after the change, hour 04 filter plans: 1
 after the change, hour 04 filter plans hours: 04
 after the change, no filter plans: 6
-spec 1 transform: day
-spec 2 transform: hour
+spec 1: day
+spec 2: hour
 file for hour 00: spec 1
 file for hour 01: spec 1
 file for hour 02: spec 1

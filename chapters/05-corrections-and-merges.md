@@ -44,13 +44,13 @@ Each library reports its own counts, and this example computes the deleted rows 
 
 The two write styles trade cost between the writer and the reader. Copy-on-write makes the write expensive and the read cheap: a reader gets the rows as the files hold them, with nothing to apply. Merge-on-read makes the write cheap, because it writes only the positions of the deleted rows, and it moves the cost to reads until something rewrites the data files.
 
-{{fig:rows-written-to-delete}} draws the same delete in rows, one bar for each format. The two copy-on-write bars are long, and the merge-on-read bar is a sliver.
+{{fig:rows-written-to-delete}} draws the same delete in rows, one bar per format. The merge-on-read bar is a sliver.
 
 ![Copy-on-write writes the rows of a whole file to remove a few, and merge-on-read writes only the rows it removes](../examples/figures/rows-written-to-delete.svg "Rows written by the same delete, per format")
 
 [Example: figure-rows-written-to-delete](../examples/figure-rows-written-to-delete.py)
 
-Iceberg wrote {{out:figure-rows-written-to-delete:Iceberg rows written by the delete}} rows and Delta Lake {{out:figure-rows-written-to-delete:Delta Lake rows written by the delete}}, the rest of the hour 02 file, which held {{out:figure-rows-written-to-delete:hour 02 rows before the delete}} rows. DuckLake wrote {{out:figure-rows-written-to-delete:DuckLake rows written by the delete}} rows, one for each row it removed.
+Iceberg wrote {{out:figure-rows-written-to-delete:Iceberg rows written by the delete}} rows and Delta Lake {{out:figure-rows-written-to-delete:Delta Lake rows written by the delete}}, the rest of a file that held {{out:figure-rows-written-to-delete:hour 02 rows before the delete}}. DuckLake wrote {{out:figure-rows-written-to-delete:DuckLake rows written by the delete}}.
 
 The three formats in this chapter differ as follows.
 

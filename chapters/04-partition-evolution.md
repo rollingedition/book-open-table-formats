@@ -64,6 +64,14 @@ Pruning is where the change pays off, so plan three scans twice: once under the 
 
 [Example: plan-files-by-partition](../examples/plan-files-by-partition.py)
 
+{{fig:files-by-spec}} puts each data file of the table at the hour its rows hold, with one row per spec: the top row is spec 1, the day spec, and the bottom row is spec 2, the hour spec. The upper panel is the table before the change, and the lower panel is the table after the three hour loads. The filled circle marks the file the hour 01 filter plans, and the filled diamond marks the file the hour 04 filter plans. The open circles are planned by neither filter.
+
+![Before the change the hour 01 filter plans one of three day files and no file holds hour 04; after it, the hour 04 filter plans the one hour-partitioned file that holds that hour](../examples/figures/files-by-spec.svg "Each data file at the hour its rows hold, with the files the hour 01 and hour 04 filters plan")
+
+[Example: figure-files-by-spec](../examples/figure-files-by-spec.py)
+
+Before the change, the hour 01 filter plans {{out:figure-files-by-spec:before the change, hour 01 filter plans}} of the {{out:figure-files-by-spec:before the change, data files}} files, and the hour 04 filter plans {{out:figure-files-by-spec:before the change, hour 04 filter plans}}, since the three loads before the change hold hours 00 to 02 and no file holds hour 04. After the change, the hour 04 filter plans {{out:figure-files-by-spec:after the change, hour 04 filter plans}} file, the hour-partitioned file for that hour. The three day files all share one partition value, so the planner tells their hours apart only by their `hour_utc` bounds. A full scan plans every file, so the figure has no mark for it.
+
 | Stage | One-hour filter | Hour 04 filter | No filter |
 | --- | --- | --- | --- |
 | Before the change, three day-partitioned loads | {{out:plan-files-by-partition:before the change, one-hour filter plans}} | {{out:plan-files-by-partition:before the change, hour 04 filter plans}} | {{out:plan-files-by-partition:before the change, no filter plans}} |
