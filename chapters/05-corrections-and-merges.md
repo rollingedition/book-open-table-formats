@@ -44,7 +44,7 @@ Each library reports its own counts, and this example computes the deleted rows 
 
 The two write styles trade cost between the writer and the reader. Copy-on-write makes the write expensive and the read cheap: a reader gets the rows as the files hold them, with nothing to apply. Merge-on-read makes the write cheap, because it writes only the positions of the deleted rows, and it moves the cost to reads until something rewrites the data files.
 
-{{fig:rows-written-to-delete}} counts what each format writes for [the delete](#delete-rows-iceberg-and-delta) that removes {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows: copy-on-write pays for the file, and merge-on-read for the rows.
+{{fig:rows-written-to-delete}} counts what each format writes for [the delete](#delete-rows-iceberg-and-delta) removing {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows: copy-on-write pays for the file, merge-on-read for the rows.
 
 ![Copy-on-write rewrites the rest of a file to remove a few rows, and merge-on-read writes only the positions of those rows](../examples/figures/rows-written-to-delete.svg "Rows of data, or positions in a delete file, written by the same delete")
 
