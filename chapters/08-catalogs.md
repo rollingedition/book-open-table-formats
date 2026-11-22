@@ -10,9 +10,9 @@ The earlier chapters opened each table by its own route: a catalog object for Ic
 
 ## What a catalog holds {#what-a-catalog-holds}
 
-Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds) files. The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. A reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
+Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds) files. The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. For Iceberg, a reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
 
-The catalog holds pointers, not the rows. The Parquet files stay in the warehouse folder, and the catalog says where to start reading. Names have a second level as well: `wiki` is a namespace, and every Iceberg table name in this book is a namespace and a table name joined by a dot.
+For Iceberg, the catalog holds pointers, not the rows. The Parquet files stay in the warehouse folder, and the catalog says where to start reading. Names have a second level as well: `wiki` is a namespace, and every Iceberg table name in this book is a namespace and a table name joined by a dot.
 
 Choosing a catalog comes down to two questions: who writes the table, and what reads it. A table that one job writes and one engine reads can live in a file-based catalog and be found by its path. A table that several engines read needs a name each of them can resolve, which is what a [SQL catalog](#register-iceberg-in-sql-catalog) or a service provides. We recommend one catalog for each table, and a record next to the table that names its catalog and its owner. A join across catalogs, as [the join section](#join-tables-from-two-catalogs) shows, works in one session. It does not make the two catalogs one.
 
@@ -52,7 +52,11 @@ A loaded table keeps the state it had when it was loaded. An object from before 
 
 `register_table(identifier, metadata_location)` adds a name for an existing metadata file. The [pyiceberg API page](https://py.iceberg.apache.org/api/) gives it as the way to register a table from its metadata, and says that passing `overwrite=True` replaces an entry that already exists. The example registers the table's metadata under `archive.pageviews_copy`, in a namespace it creates first. The archive name reads the same rows as the original table, {{out:register-iceberg-table:rows in archive copy}} of them. Both names point at the same metadata, and the registration writes no data files.
 
-A registered name is a second route to the same table, not a second table. Commits through one name are the commits of both, because both read the same metadata. Treat a second name as a read route, and not as a backup.
+A registered name is a second route to the table as it was when registered, not a live second route: the first commit through either name makes it a second table that shares the old data files. Treat a second name as a read route, and not as a backup.
+
+[Example: registered-names-split](../examples/registered-names-split.py)
+
+A commit through the original name moves only that name's pointer. The registered name still reads {{out:registered-names-split:archive rows after a commit through wiki}} rows, where the original reads {{out:registered-names-split:wiki rows after a commit through wiki}}.
 
 **Working rule:** Keep one writer name for each table. Register a metadata file under a second name only for a read you will remove afterwards, and pass `overwrite=True` only when you mean to replace that entry.
 

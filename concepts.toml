@@ -77,7 +77,7 @@ broader = ["operation"]
 id = "catalog"
 term = "catalog"
 context = "table-formats"   # elsewhere in data engineering, a data catalog is a governance inventory of data sets; here it is the registry from a table name to its current metadata
-definition = "An Iceberg table needs a catalog, which is the registry that maps a table name to the table's current metadata."
+definition = "An Iceberg table needs a catalog, which is the registry that maps a table name to the table's current metadata; a DuckLake catalog holds that metadata itself."
 section = "create-catalog-and-table"
 
 [[concepts]]
@@ -369,7 +369,7 @@ implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }, { to = "duckdb", ve
 id = "cleanup"
 term = "cleanup"
 context = "table-formats"   # elsewhere in data engineering, cleanup means cleaning data values, not deleting a table's unlisted files
-definition = "After expiry, cleanup deletes the files that no remaining snapshot lists."
+definition = "After expiry, cleanup deletes the files that no remaining snapshot lists, and in Delta Lake vacuum also deletes a file that an older version still lists once its tombstone is past the retention."
 section = "snapshots-keep-files-alive"
 example = "ducklake-expire-cleanup"
 
@@ -442,7 +442,7 @@ implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }]
 [[concepts]]
 id = "registered-name"
 term = "registered name"
-definition = "A registered name is a second route to the same table, not a second table."
+definition = "A registered name is a second route to the table as it was when registered, not a live second route: the first commit through either name makes it a second table that shares the old data files."
 section = "register-from-metadata-file"
 example = "register-iceberg-table"
 
