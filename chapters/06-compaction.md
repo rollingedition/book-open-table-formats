@@ -4,7 +4,7 @@ chapter_id: compaction
 
 # Compact the small files that hourly appends leave
 
-This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a Parquet file that holds rows of a table.
+This chapter shows you how to count the data files a table holds, merge them into fewer files in Delta Lake, DuckLake and Iceberg, and say what each merge leaves on disk. The trouble starts with the loads. The pageviews table from the [first chapter](#first-table) is loaded once an hour into each of the three formats. Each load is a commit, and each commit writes its own data files. A data file is a file, Parquet in this book, that holds rows of a table.
 
 ## Hourly appends leave small files {#hourly-appends-leave-small-files}
 
@@ -41,6 +41,14 @@ The compaction changes the files, not the rows. The table lists {{out:file-count
 The metrics the call returns count the same change from the library's side: {{out:file-counts-before-after:files added by compaction}} file added and {{out:file-counts-before-after:files removed by compaction}} files removed.
 
 The compaction did not remove the old files. Read at the version from before the call, the table still returns all {{out:file-counts-before-after:rows at the version before compaction}} rows, because that version points at the old files. The directory holds {{out:file-counts-before-after:parquet files on disk after compaction}} Parquet files after the call, the six old ones and the new one. Delta Lake removes files that no retained version uses in a separate step called `vacuum`, which [chapter 7](#expiry-and-cleanup) shows. Until that step runs, a compaction adds files on disk rather than taking any away.
+
+{{fig:files-live-and-on-disk}} follows the same six appends and the compaction version by version. The solid line counts the files each version lists, and the dashed line counts the Parquet files on disk after that version was written.
+
+![A compaction cuts the files the table lists, while the files on disk still grow](../examples/figures/files-live-and-on-disk.svg "The files each table version lists, and the Parquet files on disk after it")
+
+[Example: figure-files-live-and-on-disk](../examples/figure-files-live-and-on-disk.py)
+
+Through the six appends the two lines coincide, because an append only adds a file and the newest version lists every file written so far. At the compaction, version {{out:figure-files-live-and-on-disk:compaction version}}, they part: the solid line falls to {{out:figure-files-live-and-on-disk:files in the compaction version}} file, and the dashed line climbs to {{out:figure-files-live-and-on-disk:parquet files on disk after the compaction version}}, because the files it replaced are still on disk.
 
 Delta reads here go through the library's query builder, as every Delta read in this book does. Since the point is the file count, the rows are compared by count alone.
 

@@ -23,7 +23,7 @@ say = "A table of what each library does for writing rows, reading an earlier co
 [[tables]]
 section = "matrix-changing-and-cleaning-up"
 starts = "| Changes and cleanup |"
-say = "A table of what each library does for deletes, upserts, partition changes, compaction and snapshot expiry. pyiceberg deletes by rewriting files, with no delete files, and compacts by overwriting the table. deltalake deletes by rewriting files and compacts with an optimize call. DuckLake writes a delete file for a delete unless it inlines the delete, and it merges and expires by its own calls."
+say = "A table of what each library does for deletes, upserts, partition changes, compaction and snapshot expiry. pyiceberg deletes by rewriting files, with no delete files, and compacts by overwriting the table. deltalake deletes by rewriting files and compacts with an optimize call, and its log retention expires versions while vacuum deletes the files. DuckLake writes a delete file for a delete unless it inlines the delete, and it merges and expires by its own calls."
 
 [[tables]]
 section = "matrix-catalogs-and-duckdb"

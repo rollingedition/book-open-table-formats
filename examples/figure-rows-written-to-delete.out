@@ -1,0 +1,8 @@
+hour 02 file rows before the delete: 500
+Iceberg deleted rows: 4
+Iceberg rows written by the delete: 496
+Delta Lake deleted rows: 4
+Delta Lake rows written by the delete: 496
+DuckLake deleted rows: 4
+DuckLake positions written by the delete: 4
+figure: figures/rows-written-to-delete.svg

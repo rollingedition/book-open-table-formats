@@ -22,3 +22,6 @@ say = "A SQL MERGE into the DuckLake pageviews table, from the batch named batch
 section = "copy-on-write-and-merge-on-read"
 starts = "| Format |"
 say = "A table with one row for each format: Iceberg, Delta Lake and DuckLake. For each it gives the library at the pins, how that library writes a delete, which is copy-on-write for Iceberg and Delta Lake and merge-on-read for DuckLake, and that the delete example shows each of the three."
+
+[examples.figure-rows-written-to-delete]
+say = "The code runs the delete of the hour 02 rows with fewer than 180 views through Iceberg, Delta Lake and DuckLake, and draws what each wrote to remove the {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows. Iceberg wrote {{out:figure-rows-written-to-delete:Iceberg rows written by the delete}} rows, the rest of the hour's file, Delta Lake wrote {{out:figure-rows-written-to-delete:Delta Lake rows written by the delete}} rows, and DuckLake wrote {{out:figure-rows-written-to-delete:DuckLake positions written by the delete}} positions in a delete file."

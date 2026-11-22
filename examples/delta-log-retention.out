@@ -1,0 +1,5 @@
+versions loadable before cleanup: 6
+versions loadable after cleanup: 1
+current version after cleanup: 5
+data files on disk before cleanup: 4
+data files on disk after cleanup: 4

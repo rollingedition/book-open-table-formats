@@ -1,0 +1,7 @@
+wiki rows at registration: 999
+archive rows at registration: 999
+wiki rows after a commit through wiki: 1499
+archive rows after a commit through wiki: 999
+wiki rows after two commits through archive: 1499
+archive rows after two commits through archive: 1999
+data files both names list: 2

@@ -29,7 +29,7 @@ prerequisite-of = ["snapshot"]
 [[concepts]]
 id = "metadata-file"
 term = "metadata file"
-definition = "An Iceberg table keeps a metadata file that names its current snapshot."
+definition = "An Iceberg table keeps a metadata file that records its schema, its partition specs and its snapshots, and names the current one."
 section = "what-a-table-format-adds"
 
 [concepts.relations]
@@ -48,7 +48,7 @@ part-of = ["table-formats/metadata"]
 id = "manifest"
 term = "manifest"
 aliases = ["manifests"]
-definition = "each manifest names data files along with their statistics"
+definition = "each manifest names data files or delete files along with their statistics"
 section = "what-a-table-format-adds"
 
 [concepts.relations]
@@ -76,15 +76,15 @@ broader = ["operation"]
 [[concepts]]
 id = "catalog"
 term = "catalog"
-context = "table-formats"   # elsewhere in data engineering, a data catalog is a governance inventory of data sets; here it is the registry from a table name to its current metadata
-definition = "An Iceberg table needs a catalog, which is the registry that maps a table name to the table's current metadata."
+context = "table-formats"   # elsewhere in data engineering, a data catalog is a governance inventory of data sets; here it is the registry from a table name to its current metadata, or the metadata itself in DuckLake
+definition = "An Iceberg table needs a catalog, which is the registry that maps a table name to the table's current metadata; a DuckLake catalog holds that metadata itself."
 section = "create-catalog-and-table"
 
 [[concepts]]
 id = "snapshot-summary"
 term = "snapshot summary"
 aliases = ["summary"]
-definition = "The snapshot summary is what the table records about its own commits"
+definition = "The snapshot summary is what each snapshot records about the commit that made it"
 section = "append-each-hour"
 example = "append-hours"
 
@@ -167,7 +167,7 @@ example = "delta-rename-trap"
 [[concepts]]
 id = "physical-name"
 term = "physical name"
-definition = "every column gets a physical name stored in the files"
+definition = "with it on, every column gets a physical name stored in the files"
 section = "columns-tracked-by-id"
 
 [concepts.relations]
@@ -176,7 +176,7 @@ part-of = ["column-mapping"]
 [[concepts]]
 id = "display-name"
 term = "display name"
-definition = "the name readers use is a display name that can change without touching the files"
+definition = "with it on, every column gets a physical name stored in the files, and the name readers use is a display name that can change without touching the files"
 section = "columns-tracked-by-id"
 
 [concepts.relations]
@@ -231,7 +231,7 @@ example = "delta-partition-overwrite"
 id = "key"
 term = "key"
 context = "data-pipelines"
-definition = "In this book, a row is identified by its key: `hour_utc`, `domain_code` and `page_title` together."
+definition = "In this book, a row is identified by its key, the columns that name it: for the pageviews table, `hour_utc`, `domain_code` and `page_title` together."
 section = "late-data-as-correction"
 example = "duplicate-source-keys"
 
@@ -260,7 +260,7 @@ prerequisite-of = ["copy-on-write", "merge-on-read"]
 [[concepts]]
 id = "copy-on-write"
 term = "copy-on-write"
-definition = "In copy-on-write, the writer rewrites each data file that held a matching row and leaves out the deleted rows."
+definition = "In copy-on-write, the writer rewrites each data file that held a matching row, leaving out the deleted rows or writing the changed ones."
 section = "delete-rows-iceberg-and-delta"
 example = "delete-low-views"
 
@@ -295,7 +295,7 @@ part-of = ["merge-on-read"]
 id = "deletion-vector"
 term = "deletion vector"
 aliases = ["deletion vectors"]
-definition = "Delta Lake also has deletion vectors, which record deleted row positions in a file."
+definition = "Delta Lake also has deletion vectors, which, like DuckLake's experimental ones, record deleted row positions."
 section = "copy-on-write-and-merge-on-read"
 
 [concepts.relations]
@@ -338,7 +338,7 @@ example = "merge-domains-label"
 id = "data-file"
 term = "data file"
 aliases = ["data files"]
-definition = "A data file is a Parquet file that holds rows of a table."
+definition = "A data file is a file, Parquet in this book, that holds rows of a table."
 section = "compaction"
 example = "file-counts-before-after"
 
@@ -369,7 +369,7 @@ implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }, { to = "duckdb", ve
 id = "cleanup"
 term = "cleanup"
 context = "table-formats"   # elsewhere in data engineering, cleanup means cleaning data values, not deleting a table's unlisted files
-definition = "After expiry, cleanup deletes the files that no remaining snapshot lists."
+definition = "After expiry, cleanup deletes the files that no remaining snapshot lists, and in Delta Lake vacuum also deletes a file that an older version still lists once its tombstone is past the retention."
 section = "snapshots-keep-files-alive"
 example = "ducklake-expire-cleanup"
 
@@ -388,7 +388,7 @@ same-as = ["https://rollingedition.com/concepts/data-warehousing/unreferenced-fi
 id = "tombstone"
 term = "tombstone"
 aliases = ["remove action"]
-definition = "A Delta commit that replaces a file adds a `remove` action to the log, a tombstone that says the file is no longer part of the table, and the file stays on disk."
+definition = "A Delta commit that removes or replaces a file adds a `remove` action to the log, a tombstone that says the file is no longer part of the table, and the file stays on disk."
 section = "vacuum-in-delta-lake"
 
 [concepts.relations]
@@ -398,7 +398,7 @@ prerequisite-of = ["table-formats/vacuum"]
 id = "vacuum"
 term = "vacuum"
 context = "table-formats"   # in database engines such as PostgreSQL, VACUUM reclaims storage from dead rows, a different operation
-definition = "Vacuum deletes the files whose tombstones are older than the retention."
+definition = "Vacuum deletes the files whose tombstones are older than the retention, and the files older than it that the log never mentions."
 section = "vacuum-in-delta-lake"
 example = "vacuum-delta-dry-run"
 applies_to = ["deltalake"]
@@ -410,16 +410,16 @@ implemented-by = [{ to = "deltalake", versions = ">=1.6" }]
 [[concepts]]
 id = "dry-run"
 term = "dry run"
-definition = "A dry run lists the files that a real vacuum would delete and deletes none of them."
+definition = "A dry run lists what a real call, such as a vacuum, would delete and deletes none of it."
 section = "vacuum-dry-run-first"
 example = "vacuum-delta-dry-run"
-applies_to = ["deltalake"]
+applies_to = ["deltalake", "duckdb"]
 
 [[concepts]]
 id = "rest-catalog"
 term = "Iceberg REST catalog"
 aliases = ["REST catalog"]
-definition = "The Iceberg REST catalog is a catalog of another kind, a service instead of a file."
+definition = "The Iceberg REST catalog is a catalog of another kind, an HTTP API that a service implements, instead of a file."
 section = "what-a-catalog-holds"
 
 [concepts.relations]
@@ -430,7 +430,7 @@ contrasts-with = ["sql-catalog"]
 id = "sql-catalog"
 term = "SQL catalog"
 aliases = ["SqlCatalog"]
-definition = "The pyiceberg `SqlCatalog` keeps its tables in a database."
+definition = "The pyiceberg `SqlCatalog` keeps its list of tables in a database."
 section = "register-iceberg-in-sql-catalog"
 example = "register-iceberg-table"
 applies_to = ["pyiceberg"]
@@ -442,9 +442,9 @@ implemented-by = [{ to = "pyiceberg", versions = ">=0.12" }]
 [[concepts]]
 id = "registered-name"
 term = "registered name"
-definition = "A registered name is a second route to the same table, not a second table."
+definition = "A registered name is a second route to the table as it was when registered, not a live second route: the first commit through either name makes it a second table that shares the old data files."
 section = "register-from-metadata-file"
-example = "register-iceberg-table"
+example = "registered-names-split"
 
 [[concepts]]
 id = "data-path"
@@ -461,7 +461,7 @@ part-of = ["table-formats/catalog"]
 id = "copy"
 term = "copy"
 context = "table-formats"   # elsewhere copy means a file copy or a SQL COPY bulk load; here it is a row copy from one table format into another
-definition = "A copy reads the rows of one table at one moment and writes them into another table, in another format."
+definition = "A copy reads the rows of one table at one moment and writes them into another table, here in another format."
 section = "what-a-copy-keeps-and-loses"
 example = "iceberg-to-ducklake-copy"
 
@@ -486,7 +486,7 @@ example = "verify-copies-by-digest"
 id = "reader-feature"
 term = "reader feature"
 aliases = ["reader features"]
-definition = "A reader feature in a Delta table's protocol is a promise that every reader handles it, so a reader without it cannot read the table correctly."
+definition = "A reader feature in a Delta table's protocol is a requirement that every reader implement it, so a reader without it cannot read the table correctly."
 section = "delta-deletion-vectors"
 example = "feature-check"
 

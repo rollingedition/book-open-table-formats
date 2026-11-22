@@ -1,0 +1,7 @@
+last append version: 5
+files in the last append version: 6
+parquet files on disk after the last append version: 6
+compaction version: 6
+files in the compaction version: 1
+parquet files on disk after the compaction version: 7
+figure: figures/files-live-and-on-disk.svg

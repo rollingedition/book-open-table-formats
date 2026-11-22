@@ -1,13 +1,23 @@
 [examples.expire-iceberg-snapshots]
 say = "The code appends three hours to an Iceberg table, overwrites hour two with its correction, then expires the first three snapshots by ID and counts the data files left. It prints the snapshot counts and the file counts before and after: {{out:expire-iceberg-snapshots:snapshots before expiry}} snapshots before, {{out:expire-iceberg-snapshots:data files referenced after expiry}} data files referenced after, and {{out:expire-iceberg-snapshots:unreferenced data files left on disk}} unreferenced file still on disk. It also prints the rows in the current snapshot, and the class of the error a read of an expired snapshot raises, which is {{out:expire-iceberg-snapshots:read snapshot 3}}."
 
+[examples.figure-snapshots-keep-files]
+say = "The code appends three hours to an Iceberg table, overwrites hour two with its correction, then expires the first three snapshots by ID. For each snapshot it finds the data files that snapshot lists, and draws one row per snapshot and one column per file, and labels each row as expired or kept. It prints {{out:figure-snapshots-keep-files:data files referenced before expiry}} files referenced before the expiry and {{out:figure-snapshots-keep-files:data files referenced after expiry}} after it. The file no kept snapshot lists is {{out:figure-snapshots-keep-files:unreferenced after expiry}}, and the disk still holds {{out:figure-snapshots-keep-files:unreferenced data files left on disk}} unreferenced file."
+
 [examples.vacuum-delta-dry-run]
 say = "The code appends three hours to a Delta table, deletes hour two, appends the correction, then runs vacuum with its dry run. It first uses the default retention, and then zero retention, which the library refuses, so the code prints the class of that refusal. For this teaching run only, it turns the retention check off, then vacuums for real. It prints the file counts from the dry run and the real run, reads version zero, which still works, and reads version two, which fails with an error of class {{out:vacuum-delta-dry-run:read version 2}}. It catches only the library's refusal and that read error, so any other failure stops the run."
+
+[examples.delta-log-retention]
+say = "The code appends three hours to a Delta table, deletes hour two, appends the correction, and sets its log retention to zero seconds. It counts the versions the log still loads, which is {{out:delta-log-retention:versions loadable before cleanup}}, then writes a checkpoint and runs cleanup_metadata. Afterwards {{out:delta-log-retention:versions loadable after cleanup}} version loads, the current one, which is version {{out:delta-log-retention:current version after cleanup}}. The disk holds {{out:delta-log-retention:data files on disk before cleanup}} data files before and {{out:delta-log-retention:data files on disk after cleanup}} after, so the cleanup deleted no data file. It stops at any error other than a version that no longer loads."
 
 [examples.ducklake-expire-cleanup]
 say = "The code builds a DuckLake table with three inserts, a delete of hour two and the corrected insert, then expires every snapshot before the correction, cleans up the files they released, and lists orphaned files. It prints the snapshot counts, the {{out:ducklake-expire-cleanup:expiry dry run lists}} snapshots the expiry dry run lists, the {{out:ducklake-expire-cleanup:cleanup dry run lists}} file the cleanup dry run lists, and the {{out:ducklake-expire-cleanup:cleanup removed}} file the real cleanup removes. The orphan count is {{out:ducklake-expire-cleanup:orphans listed without cleanup_all}}, because the stray copy is too recent to be listed without the cleanup-all option. The last line is the class of the error a read of the delete snapshot raises, which is {{out:ducklake-expire-cleanup:read snapshot 7}}. The code catches only that read error, so any other failure stops the run."
 
+[terms]
+"cleanup_metadata" = "cleanup metadata"
+"delta.logRetentionDuration" = "delta dot log retention duration"
+
 [[tables]]
 section = "snapshots-keep-files-alive"
 starts = "| Format |"
-say = "A table with one row for each format: pyiceberg, deltalake and DuckLake. For each it gives the expiry call, whether expiry deletes files, and the call that removes them. Iceberg's expiry deletes nothing and has no cleanup call in the library. Delta Lake's vacuum does the deleting. DuckLake needs an expiry call and then a cleanup call."
+say = "A table with one row for each format: pyiceberg, deltalake and DuckLake. For each it gives the expiry call, whether expiry deletes files, and the call that removes them. Iceberg's expiry deletes nothing and has no cleanup call in the library. Delta Lake's expiry is log retention, which deletes no files, and its vacuum does the deleting. DuckLake needs an expiry call and then a cleanup call."

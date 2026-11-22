@@ -53,7 +53,7 @@ These tables state what the pinned tools did in this book's runs. Each column is
 | Upsert or merge | Upsert, several snapshots | Not shown here | `MERGE INTO` | [Upserts](#upserts-in-pyiceberg), [MERGE](#merge-in-ducklake) |
 | Change partitioning | Old files keep the old spec | Overwrite with schema mode | Change with `ALTER TABLE` | [Chapter 4](#daily-to-hourly-partitions), [other formats](#partitioning-in-other-formats) |
 | Compact small files | No method; overwrite the table | `optimize.compact()` | Merge adjacent files | [Iceberg](#compact-iceberg-by-rewriting), [deltalake](#compact-in-delta-lake), [DuckLake](#compact-in-ducklake) |
-| Expire snapshots | By ID or `older_than`; deletes no files | Vacuum by retention | Expire, then clean up | [Iceberg](#expire-snapshots-in-iceberg), [deltalake](#vacuum-dry-run-first), [DuckLake](#expire-and-clean-up-in-ducklake) |
+| Expire snapshots | By ID or `older_than`; deletes no files | Log retention; vacuum deletes files | Expire, then clean up | [Iceberg](#expire-snapshots-in-iceberg), [deltalake](#vacuum-in-delta-lake), [DuckLake](#expire-and-clean-up-in-ducklake) |
 
 [Example: ducklake-delete-files](../examples/ducklake-delete-files.py)
 
@@ -91,7 +91,7 @@ pyiceberg deletes by rewriting the data files it touches at these pins, although
 
 ## Deletion vectors need a protocol upgrade {#delta-deletion-vectors}
 
-The Delta Lake protocol, at the release tag its link names, says a table with deletion vectors needs reader version 3 and writer version 7, with the `deletionVectors` feature in both feature lists. It also says a reader must implement every feature in the reader list before it reads the table ([Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). A reader feature in a Delta table's protocol is a promise that every reader handles it, so a reader without it cannot read the table correctly.
+The Delta Lake protocol, at the release tag its link names, says a table with deletion vectors needs reader version 3 and writer version 7, with the `deletionVectors` feature in both feature lists. It also says a reader must implement every feature in the reader list before it reads the table ([Delta protocol](https://raw.githubusercontent.com/delta-io/delta/v4.4.1/PROTOCOL.md)). A reader feature in a Delta table's protocol is a requirement that every reader implement it, so a reader without it cannot read the table correctly.
 
 [Example: feature-check](../examples/feature-check.py)
 

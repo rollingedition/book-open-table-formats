@@ -10,9 +10,9 @@ The earlier chapters opened each table by its own route: a catalog object for Ic
 
 ## What a catalog holds {#what-a-catalog-holds}
 
-Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds) files. The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. A reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
+Ask where `wiki.pageviews_hourly` lives, and the answer depends on the format. Underneath, every format stores a table as data files plus [metadata](#what-a-table-format-adds). The metadata names the table's current state: its schema, its partition spec and, directly or through manifest files, the data files of its current snapshot or version. Each commit writes new metadata and moves the table to it. The catalog is the registry that maps a table's name to the place where its current metadata is. For Iceberg, a reader that asks the catalog for `wiki.pageviews_hourly` gets a pointer to the metadata, and then reads the data files that the metadata lists.
 
-The catalog holds pointers, not the rows. The Parquet files stay in the warehouse folder, and the catalog says where to start reading. Names have a second level as well: `wiki` is a namespace, and every Iceberg table name in this book is a namespace and a table name joined by a dot.
+For Iceberg, the catalog holds pointers, not the rows. The Parquet files stay in the warehouse folder, and the catalog says where to start reading. Names have a second level as well: `wiki` is a namespace, and every Iceberg table name in this book is a namespace and a table name joined by a dot.
 
 Choosing a catalog comes down to two questions: who writes the table, and what reads it. A table that one job writes and one engine reads can live in a file-based catalog and be found by its path. A table that several engines read needs a name each of them can resolve, which is what a [SQL catalog](#register-iceberg-in-sql-catalog) or a service provides. We recommend one catalog for each table, and a record next to the table that names its catalog and its owner. A join across catalogs, as [the join section](#join-tables-from-two-catalogs) shows, works in one session. It does not make the two catalogs one.
 
@@ -24,7 +24,7 @@ The three formats in this book use three different catalogs:
 | DuckLake | The catalog file, attached by path | Inside the catalog file |
 | Delta Lake | Nothing; the table's folder path | In the table's folder |
 
-The Iceberg REST catalog is a catalog of another kind, a service instead of a file. Its [REST catalog page](https://iceberg.apache.org/rest-catalog-spec/) describes a common API, specified with OpenAPI, for interacting with any Iceberg catalog, so that clients need one implementation for all of them. The same page says the protocol uses change-based commits, so the service can resolve conflicts and retry on its side, and that the catalog service writes the root metadata. This chapter runs no REST catalog. Each one needs a running service, and the examples here run offline with no service. The book does not compare the products that implement the protocol.
+The Iceberg REST catalog is a catalog of another kind, an HTTP API that a service implements, instead of a file. Its [REST catalog page](https://iceberg.apache.org/rest-catalog-spec/) describes a common API, specified with OpenAPI, for interacting with any Iceberg catalog, so that clients need one implementation for all of them. The same page says the protocol uses change-based commits, so the service can resolve conflicts and retry on its side, and that the catalog service writes the root metadata. This chapter runs no REST catalog. Each one needs a running service, and the examples here run offline with no service. The book does not compare the products that implement the protocol.
 
 A catalog can hold more than names. Classifications and retention rules are table metadata too. [*Data Governance as Code*](https://rollingedition.com/data-governance-as-code) covers them, and this book does not teach them.
 
@@ -32,7 +32,7 @@ A catalog can hold more than names. Classifications and retention rules are tabl
 
 ## Register a table in a SQL catalog {#register-iceberg-in-sql-catalog}
 
-The pyiceberg `SqlCatalog` keeps its tables in a database. You give it a `uri` for that database and a `warehouse` for the folder where it writes data files and metadata. This book uses a SQLite file for the database and a local folder for the warehouse. The [pyiceberg configuration page](https://py.iceberg.apache.org/configuration/) says the SQL catalog needs a database behind it, and warns that SQLite is not built for concurrency and suits exploratory or development use. These examples are for development, so that limit does not change anything in them. A production catalog needs a database that several writers can use.
+The pyiceberg `SqlCatalog` keeps its list of tables in a database. You give it a `uri` for that database and a `warehouse` for the folder where it writes data files and metadata. This book uses a SQLite file for the database and a local folder for the warehouse. The [pyiceberg configuration page](https://py.iceberg.apache.org/configuration/) says the SQL catalog needs a database behind it, and warns that SQLite is not built for concurrency and suits exploratory or development use. These examples are for development, so that limit does not change anything in them. A production catalog needs a database that several writers can use.
 
 The next example opens the same catalog file a second time, with the same name, and reads the table through that second object. It then registers a second name for the table's metadata, and shows what a catalog object with a different name can see.
 
@@ -52,7 +52,13 @@ A loaded table keeps the state it had when it was loaded. An object from before 
 
 `register_table(identifier, metadata_location)` adds a name for an existing metadata file. The [pyiceberg API page](https://py.iceberg.apache.org/api/) gives it as the way to register a table from its metadata, and says that passing `overwrite=True` replaces an entry that already exists. The example registers the table's metadata under `archive.pageviews_copy`, in a namespace it creates first. The archive name reads the same rows as the original table, {{out:register-iceberg-table:rows in archive copy}} of them. Both names point at the same metadata, and the registration writes no data files.
 
-A registered name is a second route to the same table, not a second table. Commits through one name are the commits of both, because both read the same metadata. Treat a second name as a read route, and not as a backup.
+A registered name is a second route to the table as it was when registered, not a live second route: the first commit through either name makes it a second table that shares the old data files. Treat a second name as a read route, and not as a backup.
+
+[Example: registered-names-split](../examples/registered-names-split.py)
+
+A commit through either name moves only that name's pointer. After a commit through the original, the registered name still reads {{out:registered-names-split:archive rows after a commit through wiki}} rows, where the original reads {{out:registered-names-split:wiki rows after a commit through wiki}}. After two commits through the registered name, it reads {{out:registered-names-split:archive rows after two commits through archive}} rows, and the original still reads {{out:registered-names-split:wiki rows after two commits through archive}}.
+
+The two names still list {{out:registered-names-split:data files both names list}} of the same data files.
 
 **Working rule:** Keep one writer name for each table. Register a metadata file under a second name only for a read you will remove afterwards, and pass `overwrite=True` only when you mean to replace that entry.
 

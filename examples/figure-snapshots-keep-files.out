@@ -1,0 +1,12 @@
+snapshots before expiry: 5
+snapshot 1 lists: file 1
+snapshot 2 lists: file 1, file 2
+snapshot 3 lists: file 1, file 2, file 3
+snapshot 4 lists: file 1, file 2
+snapshot 5 lists: file 1, file 2, file 4
+data files referenced before expiry: 4
+remaining snapshots: snapshot 4, snapshot 5
+data files referenced after expiry: 3
+unreferenced after expiry: file 3
+unreferenced data files left on disk: 1
+figure: figures/snapshots-keep-files.svg
