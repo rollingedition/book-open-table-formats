@@ -33,15 +33,6 @@ L 113.547115 210.398979
 z
 " style="fill: none"/>
    </g>
-   <g id="patch_3">
-    <path d="M 296.105336 7.148215 
-L 379.560522 7.148215 
-L 379.560522 206.251004 
-L 296.105336 206.251004 
-L 296.105336 7.148215 
-z
-" clip-path="url(#pfda03601e8)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #1b1712; stroke-linejoin: miter"/>
-   </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_1">
@@ -191,12 +182,12 @@ L 457.79976 189.659105
      </g>
     </g>
    </g>
-   <g id="patch_4">
+   <g id="patch_3">
     <path d="M 113.547115 210.398979 
 L 113.547115 3.00024 
 " style="fill: none; stroke: #61574a; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
-   <g id="patch_5">
+   <g id="patch_4">
     <path d="M 113.547115 210.398979 
 L 457.79976 210.398979 
 " style="fill: none; stroke: #61574a; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
@@ -217,29 +208,17 @@ z
    <g id="PathCollection_2">
     <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m6b15e1d3ef" x="129.194963" y="65.219862" style="fill: #61574a; stroke: #61574a"/>
+     <use xlink:href="#m6b15e1d3ef" x="233.513946" y="65.219862" style="fill: #61574a; stroke: #61574a"/>
     </g>
    </g>
    <g id="PathCollection_3">
     <g clip-path="url(#pfda03601e8)">
-     <use xlink:href="#m6b15e1d3ef" x="233.513946" y="65.219862" style="fill: #61574a; stroke: #61574a"/>
-    </g>
-   </g>
-   <g id="PathCollection_4">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m6b15e1d3ef" x="129.194963" y="106.699609" style="fill: #61574a; stroke: #61574a"/>
-    </g>
-   </g>
-   <g id="PathCollection_5">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m6b15e1d3ef" x="233.513946" y="106.699609" style="fill: #61574a; stroke: #61574a"/>
-    </g>
-   </g>
-   <g id="PathCollection_6">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m6b15e1d3ef" x="337.832929" y="106.699609" style="fill: #61574a; stroke: #61574a"/>
     </g>
    </g>
-   <g id="PathCollection_7">
+   <g id="PathCollection_4">
     <defs>
      <path id="m101db00dd6" d="M -4.743416 4.743416 
 L 4.743416 4.743416 
@@ -250,25 +229,13 @@ z
     </defs>
     <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m101db00dd6" x="129.194963" y="148.179357" style="fill: #9a4a06; stroke: #9a4a06"/>
-    </g>
-   </g>
-   <g id="PathCollection_8">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m101db00dd6" x="233.513946" y="148.179357" style="fill: #9a4a06; stroke: #9a4a06"/>
     </g>
    </g>
-   <g id="PathCollection_9">
+   <g id="PathCollection_5">
     <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m101db00dd6" x="129.194963" y="189.659105" style="fill: #9a4a06; stroke: #9a4a06"/>
-    </g>
-   </g>
-   <g id="PathCollection_10">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m101db00dd6" x="233.513946" y="189.659105" style="fill: #9a4a06; stroke: #9a4a06"/>
-    </g>
-   </g>
-   <g id="PathCollection_11">
-    <g clip-path="url(#pfda03601e8)">
      <use xlink:href="#m101db00dd6" x="442.151912" y="189.659105" style="fill: #9a4a06; stroke: #9a4a06"/>
     </g>
    </g>

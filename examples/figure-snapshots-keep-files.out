@@ -6,8 +6,6 @@ snapshot 4 lists: file 1, file 2
 snapshot 5 lists: file 1, file 2, file 4
 data files referenced before expiry: 4
 remaining snapshots: snapshot 4, snapshot 5
-snapshot 4 lists after expiry: file 1, file 2
-snapshot 5 lists after expiry: file 1, file 2, file 4
 data files referenced after expiry: 3
 unreferenced after expiry: file 3
 unreferenced data files left on disk: 1
