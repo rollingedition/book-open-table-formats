@@ -64,20 +64,18 @@ Pruning is where the change pays off, so plan three scans twice: once under the 
 
 [Example: plan-files-by-partition](../examples/plan-files-by-partition.py)
 
-{{fig:files-by-spec}} puts each data file of the table at the hour its rows hold, with one row per spec: the top row is spec 1, the day spec, and the bottom row is spec 2, the hour spec. The upper panel is the table before the change, and the lower panel is the table after the three hour loads. The filled circle marks the file the hour 01 filter plans, and the filled diamond marks the file the hour 04 filter plans. The open circles are planned by neither filter.
-
-![Before the change the hour 01 filter plans one of three day files and no file holds hour 04; after it, the hour 04 filter plans the one hour-partitioned file that holds that hour](../examples/figures/files-by-spec.svg "Each data file at the hour its rows hold, with the files the hour 01 and hour 04 filters plan")
-
-[Example: figure-files-by-spec](../examples/figure-files-by-spec.py)
-
-Before the change, the hour 01 filter plans {{out:figure-files-by-spec:before the change, hour 01 filter plans}} of the {{out:figure-files-by-spec:before the change, data files}} files, and the hour 04 filter plans {{out:figure-files-by-spec:before the change, hour 04 filter plans}}, since the three loads before the change hold hours 00 to 02 and no file holds hour 04. After the change, the hour 04 filter plans {{out:figure-files-by-spec:after the change, hour 04 filter plans}} file, the hour-partitioned file for that hour. The three day files all share one partition value, so the planner tells their hours apart only by their `hour_utc` bounds. A full scan plans every file, so the figure has no mark for it.
-
 | Stage | One-hour filter | Hour 04 filter | No filter |
 | --- | --- | --- | --- |
 | Before the change, three day-partitioned loads | {{out:plan-files-by-partition:before the change, one-hour filter plans}} | {{out:plan-files-by-partition:before the change, hour 04 filter plans}} | {{out:plan-files-by-partition:before the change, no filter plans}} |
 | After the change, three hour-partitioned loads added | {{out:plan-files-by-partition:after the change, one-hour filter plans}} | {{out:plan-files-by-partition:after the change, hour 04 filter plans}} | {{out:plan-files-by-partition:after the change, no filter plans}} |
 
 Each filter reaches the file of its own hour, in whichever era that hour was loaded. The one-hour filter plans {{out:plan-files-by-partition:before the change, one-hour filter plans}} file before the change and {{out:plan-files-by-partition:after the change, one-hour filter plans}} file after it, and the hour 04 filter plans {{out:plan-files-by-partition:before the change, hour 04 filter plans}} files before and {{out:plan-files-by-partition:after the change, hour 04 filter plans}} file after. Hour 01 was loaded before the change, so the one file in both plans is that hour's day-partitioned file. Before the change, all three files share one day, so the planner can skip the other two only by their `hour_utc` bounds. After the change, the three hour-partitioned files are skipped as well. Hour 04 runs the other way. No day-partitioned file holds it, so its only match is the hour-partitioned file that holds that hour. The counts do not show whether the planner skipped a file on its partition values or on its column bounds; they show only what the plan kept.
+
+{{fig:files-by-spec}} plans every one-hour filter after the change, not only the two in the table, and marks the spec of the one file each plans. The hour 01 filter's file is under {{out:figure-files-by-spec:hour 01 filter plans a file under}}, the day spec, and the hour 04 filter's is under {{out:figure-files-by-spec:hour 04 filter plans a file under}}, the hour spec: old files and new answer the same filter side by side.
+
+![Every one-hour filter plans a single file: a day-spec file for the hours loaded before the change, an hour-spec file for those after](../examples/figures/files-by-spec.svg "The one file each one-hour filter plans after the spec change, by the spec it was written under")
+
+[Example: figure-files-by-spec](../examples/figure-files-by-spec.py)
 
 A plan count is a count of files, not of bytes. Two plans with the same count can read different amounts of data, because files differ in size. The count is still the right first check, because it is the number the planner decides on. When the counts agree and the query is still slow, look at file sizes and at the query itself.
 

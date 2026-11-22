@@ -44,13 +44,13 @@ Each library reports its own counts, and this example computes the deleted rows 
 
 The two write styles trade cost between the writer and the reader. Copy-on-write makes the write expensive and the read cheap: a reader gets the rows as the files hold them, with nothing to apply. Merge-on-read makes the write cheap, because it writes only the positions of the deleted rows, and it moves the cost to reads until something rewrites the data files.
 
-{{fig:rows-written-to-delete}} draws the same delete in rows, one bar per format. The merge-on-read bar is a sliver.
+{{fig:rows-written-to-delete}} counts what each format writes for [the delete](#delete-rows-iceberg-and-delta) that removes {{out:figure-rows-written-to-delete:Iceberg deleted rows}} rows: copy-on-write pays for the file, and merge-on-read for the rows.
 
-![Copy-on-write writes the rows of a whole file to remove a few, and merge-on-read writes only the rows it removes](../examples/figures/rows-written-to-delete.svg "Rows written by the same delete, per format")
+![Copy-on-write rewrites the rest of a file to remove a few rows, and merge-on-read writes only the positions of those rows](../examples/figures/rows-written-to-delete.svg "Rows of data, or positions in a delete file, written by the same delete")
 
 [Example: figure-rows-written-to-delete](../examples/figure-rows-written-to-delete.py)
 
-Iceberg wrote {{out:figure-rows-written-to-delete:Iceberg rows written by the delete}} rows and Delta Lake {{out:figure-rows-written-to-delete:Delta Lake rows written by the delete}}, the rest of a file that held {{out:figure-rows-written-to-delete:hour 02 rows before the delete}}. DuckLake wrote {{out:figure-rows-written-to-delete:DuckLake rows written by the delete}}.
+Iceberg wrote {{out:figure-rows-written-to-delete:Iceberg rows written by the delete}} rows of a file that held {{out:figure-rows-written-to-delete:hour 02 file rows before the delete}}, and Delta Lake wrote {{out:figure-rows-written-to-delete:Delta Lake rows written by the delete}}. DuckLake's delete file lists {{out:figure-rows-written-to-delete:DuckLake positions written by the delete}} positions.
 
 The three formats in this chapter differ as follows.
 

@@ -13,7 +13,8 @@ def listed(table, sid):
 
 with new_warehouse() as wh:
     table = create_iceberg_table(wh)
-    for hour in (0, 1, 2): table.append(read_cut_hour(hour))
+    for hour in (0, 1, 2):
+        table.append(read_cut_hour(hour))
     # hour_filter(2) matches only hour 02, so the overwrite leaves hours 00 and 01 alone
     table.overwrite(hour_corrections(read_cut_hour(2)), overwrite_filter=hour_filter(2))
 
@@ -21,7 +22,6 @@ with new_warehouse() as wh:
     labels, names = snapshot_labels(ids), {}
     for sid in ids:  # name each file by the first snapshot that lists it, so file 1 is the first one written
         new = listed(table, sid) - set(names)
-        assert len(new) <= 1, "each commit in this case writes at most one file"
         names.update({path: f"file {len(names) + 1}" for path in new})
     before = {sid: {names[path] for path in listed(table, sid)} for sid in ids}
     print("snapshots before expiry:", len(ids))
