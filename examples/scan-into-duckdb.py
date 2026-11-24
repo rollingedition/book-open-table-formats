@@ -1,6 +1,7 @@
 """Read the current Iceberg snapshot into DuckDB and check the totals.
 
-The point that DuckDB received every row rests on the two total views lines, which the assert compares.
+The point that DuckDB's total agrees with the scan's own sum rests on the two total views lines, which the assert
+compares. A matching sum checks one aggregate; it does not show that every row or value arrived.
 """
 
 from lib.lakehouse import (

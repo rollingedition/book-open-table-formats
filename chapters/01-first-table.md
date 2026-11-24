@@ -138,9 +138,9 @@ The next example appends hours 00 to 02 to a fresh table and asks it two questio
 
 The list holds the five titles with the most views in hour 00, largest first, with the title as the tie-breaker, and each line shows the views, a tab, then the title. The total in DuckDB is {{out:scan-into-duckdb:total views in DuckDB}} views, the same as the scan's own sum of {{out:scan-into-duckdb:total views in the scan}}, and an assert stops the run if the two ever differ.
 
-A total that matches the scan's sum shows that DuckDB received every row the scan returned. It does not check the rows themselves, and it does not check the top-five query. A check on a total costs one line, so it is worth running after every change to a query. Checking the rows against their source is the job of the later chapters, which compare each change against the data they came from.
+A total that matches the scan's sum is a consistency check on one aggregate. It does not show that DuckDB received every row or every value, because a missing row and an extra one, or two values wrong in opposite directions, can leave the sum unchanged. It does not check the top-five query either. A check on a total costs one line, so it is worth running after every change to a query. Checking the rows against their source is the job of the later chapters, which compare each change against the data they came from.
 
-**Working rule:** Read an Iceberg table into DuckDB as the Arrow table from a scan, and compare a total with the scan's own sum, to confirm that DuckDB received every row. Then check each query's result against a source you can compare it with.
+**Working rule:** Read an Iceberg table into DuckDB as the Arrow table from a scan, and compare a total with the scan's own sum as a quick consistency check. A matching sum does not show that every row arrived, so when the rows themselves matter, compare them, as the [sorted digest](#check-copy-with-digest) in chapter 9 does. Then check each query's result against a source you can compare it with.
 
 ## What goes wrong in production {#first-table-production-failures}
 
