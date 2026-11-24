@@ -10,7 +10,7 @@ say = "The code writes three hours to an Iceberg table, reads the field ID of th
 say = "The code creates a Delta Lake table with column mapping on, calls set column metadata with a name key, and reads the names back. The call returns without error, and the version goes up by one. The column still reads as page title. The DuckDB query that asks for article title fails with a binder exception, and the error lists page title among the columns it could use."
 
 [examples.delta-rename-by-rewrite]
-say = "The code writes three hours to a Delta Lake table, reads the whole table, renames the page title column in memory, and writes it back over the table with the schema replaced. The table goes from {{out:delta-rename-by-rewrite:data files before the rewrite}} data files to {{out:delta-rename-by-rewrite:data files after the rewrite}}. The rewrite makes version {{out:delta-rename-by-rewrite:version after the rewrite}}, which has the article title column and {{out:delta-rename-by-rewrite:rows after the rewrite}} rows, and version {{out:delta-rename-by-rewrite:version before the rewrite}} still has the page title column."
+say = "The code writes three hours to a Delta Lake table, reads the whole table, renames the page title column in memory, and writes it back over the table with the schema replaced. The table goes from {{out:delta-rename-by-rewrite:data files before the rewrite}} data files to {{out:delta-rename-by-rewrite:data files after the rewrite}}. The rewrite makes version {{out:delta-rename-by-rewrite:version after the rewrite}}, which has the article title column and {{out:delta-rename-by-rewrite:rows after the rewrite}} rows, and version {{out:delta-rename-by-rewrite:version before the rewrite}}, read back after the rewrite, still has the page title column."
 
 [[blocks]]
 section = "add-response-bytes"
@@ -36,3 +36,7 @@ say = "The Delta Lake call that looks like a rename: it sets a name key in the c
 section = "schema-decisions"
 starts = "| Change |"
 say = "A table comparing the two formats for three changes: adding a column, renaming a column, and reading an older snapshot or version. Iceberg adds and renames without rewriting, and an older snapshot shows the older name. Delta Lake adds, but its rename does not work at this version, and an older version shows the older name."
+
+[terms]
+"page_title" = "page title"
+"domain_code" = "domain code"

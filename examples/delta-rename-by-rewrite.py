@@ -1,5 +1,5 @@
 """Renames a Delta Lake column by overwriting the table with renamed data and schema, then reads the version before the rewrite back.
-Compare the two columns lines: the version before the rewrite, and the version the rewrite makes.
+Compare the last columns line with the one before it: read back after the rewrite, the version before it still has page_title, while the version the rewrite makes has article_title.
 """
 
 from deltalake import DeltaTable, write_deltalake
@@ -24,3 +24,5 @@ with new_warehouse() as wh:
     print(f"version after the rewrite: {after}")
     print(f"columns after the rewrite: {', '.join(read_delta(path).column_names)}")
     print(f"rows after the rewrite: {read_delta(path).num_rows}")
+    # read by version number, after the overwrite has committed: the old version keeps the schema it was written with
+    print(f"columns at the version before, read after the rewrite: {', '.join(read_delta(path, version=before).column_names)}")
