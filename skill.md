@@ -21,7 +21,7 @@ description: "Use when you create or append to an Iceberg (pyiceberg), Delta Lak
 
 **When:** A total changed and you must find out whether the table or the query changed, or a report must reproduce an earlier state.
 
-1. List the table's history and use that list as the only source of commit numbers. Read each commit's operation: only an append leaves existing rows alone. [Every commit is a snapshot](#every-commit-is-a-snapshot)
+1. List the table's history and use that list as the only source of commit numbers. Read each commit's operation: an append removes no rows, but its late or repeated rows can raise an earlier hour's total, so read the affected rows first. [Every commit is a snapshot](#every-commit-is-a-snapshot)
 2. In Iceberg, pass a snapshot ID from the snapshot list to the scan, never a position. [Snapshots in pyiceberg](#snapshots-in-pyiceberg)
 3. In Delta Lake, read a version by its number in the history, through deltalake's query builder. In DuckLake, read a snapshot number taken from the catalog's snapshot table, not one you count yourself. Compare formats by the hour each commit loaded. [Read a commit by its number in each format](#versions-in-ducklake-and-delta), [Decisions this chapter made](#snapshot-decisions)
 4. Before you trust either count, compare the row counts for the same hour across formats. [What goes wrong in production](#snapshot-production-failures)

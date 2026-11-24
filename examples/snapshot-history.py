@@ -15,7 +15,7 @@ def main():
             table.append(batch)
             write_deltalake(delta_path, batch, mode="append")
 
-        # sequence_number counts commits, so sorting by it puts the labels in commit order.
+        # sequence_number orders the snapshots, and is not a count of all commits; sorting by it puts the labels in commit order.
         snapshots = sorted(table.snapshots(), key=lambda snapshot: snapshot.sequence_number)
         labels = snapshot_labels([snapshot.snapshot_id for snapshot in snapshots])
         for snapshot in snapshots:
