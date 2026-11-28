@@ -13,8 +13,8 @@ markdown-it-py==4.3.0
 matplotlib==3.11.2
 mdurl==0.1.2
 mmh3==5.3.1
-polars==2.1.0
-polars-runtime-32==2.1.0
+polars==2.2.0
+polars-runtime-32==2.2.0
 pyarrow==26.0.1
 pydantic==2.14.4
 pydantic_core==2.50.5
